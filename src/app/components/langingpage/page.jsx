@@ -35,6 +35,34 @@ const farmBoxes = [
       "Our most popular farmbox - a weekly-changing variety of your classic fruit and vegetable favorites.",
     image: FarmBox1,
   },
+  {
+    title: "Build Your Own (FarmBox) Fruits, Veggies + More",
+    price: "$35.62",
+    description:
+      "Enjoy a hand-picked selection of seasonal fruits and vegetables sourced from our favorite Texas and regional farm partners. Each box includes 7-8  produce items, mix of fruit and vegetables.",
+    image: FarmBox1,
+  },
+  {
+    title: "Wee FarmBox, Fruits & Veggies",
+    price: "$20.99",
+    description:
+      "Enjoy a hand-picked selection of seasonal fruits and vegetables sourced from our favorite Texas and regional farm partners. Each box includes 7-8  produce items, mix of fruit and vegetables.",
+    image: FarmBox1,
+  },
+  {
+    title: "Wee FarmBox, Veggie Only",
+    price: "$20.99",
+    description:
+      "Enjoy a hand-picked selection of seasonal fruits and vegetables sourced from our favorite Texas and regional farm partners. Each box includes 7-8  produce items, mix of fruit and vegetables.",
+    image: FarmBox1,
+  },
+  {
+    title: "Regular FarmBox, Mix Fruit & Veggie",
+    price: "$37.99",
+    description:
+      "Our most popular farmbox - a weekly-changing variety of your classic fruit and vegetable favorites.",
+    image: FarmBox1,
+  },
 ];
 
 const Navbar = () => {
@@ -95,7 +123,7 @@ export default function FarmBoxesPage() {
                 alt={box.title}
                 width={400}
                 height={300}
-                className="w-full h-60 object-cover transform hover:scale-105 transition-transform duration-300"
+                className="w-full h-80 object-cover transform hover:scale-105 transition-transform duration-300"
               />
               <div className="flex flex-wrap pt-4 px-5">
                 <h1 className="text-gray-400">FROM OUR FARMERS</h1>
