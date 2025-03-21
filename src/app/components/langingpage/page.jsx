@@ -84,7 +84,7 @@ const Navbar = () => {
           <Link href="#" className="text-green-600 hover:text-green-300">WHERE WE DELIVER</Link>
         </div>
         <div className="hidden md:flex space-x-4">
-          <button className="text-white border px-4 py-2 rounded-lg">LOG IN</button>
+          <button className=" border px-4 py-2 rounded-lg">LOG IN</button>
           <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">SIGN UP</button>
         </div>
         <button className="md:hidden text-green-600" onClick={toggleMobileMenu}>
