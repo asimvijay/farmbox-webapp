@@ -79,7 +79,7 @@ const Navbar = () => {
         <div className="hidden md:flex space-x-6">
           <Link href="#" className="text-green-600 hover:text-green-300">WHY FARMBOX</Link>
           <Link href="#" className="text-green-600 hover:text-green-300">PRODUCE BOXES</Link>
-          <Link href="#" className="text-green-600 hover:text-green-300">BUTCHER BOX</Link>
+
           <Link href="#" className="text-green-600 hover:text-green-300">GROCERIES</Link>
           <Link href="#" className="text-green-600 hover:text-green-300">WHERE WE DELIVER</Link>
         </div>
@@ -97,10 +97,10 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
             <Link href="#" className="hover:underline">Staff Picks</Link>
-            <Link href="#" className="hover:underline">Pets!</Link>
+
             <Link href="#" className="hover:underline">New & Seasonal</Link>
             <Link href="#" className="hover:underline">FarmBoxes</Link>
-            <Link href="#" className="hover:underline">Butcher Box</Link>
+
             <Link href="#" className="hover:underline">Produce</Link>
           </div>
         </div>
