@@ -111,7 +111,7 @@ const Navbar = () => {
 
 export default function FarmBoxesPage() {
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <Navbar />
       <div className="w-screen mx-auto px-10 py-10">
         <h1 className="text-3xl font-bold text-center mb-8 text-green-700">SEASONAL FARMBOXES</h1>
