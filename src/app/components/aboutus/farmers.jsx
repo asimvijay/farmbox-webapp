@@ -3,17 +3,20 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { FaTractor, FaSeedling, FaMapMarkerAlt, FaRegHandshake } from 'react-icons/fa';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker as LeafletMarker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import FarmerImage from '../../../../assets/images/farmer.webp';
 import FarmImage from '../../../../assets/images/organic-farm.png';
-
+import MarkerIcon from "../../../../assets/images/marker-icon.jpg";
+import MarkerIcon2x from "../../../../assets/images/marker-icon2x.jpg";
+import MarkerShadow from "../../../../assets/images/marker-shadow.jpg";
+import FarmM from '../../../../assets/images/farm-m.png';
 // Fix for default marker icons
 const DefaultIcon = L.icon({
-  iconUrl: '/images/marker-icon.png',
-  iconRetinaUrl: '/images/marker-icon-2x.png',
-  shadowUrl: '/images/marker-shadow.png',
+  iconUrl: MarkerIcon.src,
+  iconRetinaUrl: MarkerIcon2x.src,
+  shadowUrl: MarkerShadow.src,
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -24,7 +27,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 // Custom farm icon
 const createFarmIcon = () => L.icon({
-  iconUrl: '/images/farm-marker.png',
+  iconUrl: FarmM.src,
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32]
@@ -132,7 +135,7 @@ export default function FarmersAndProducers() {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
                 {farmers.map((farmer) => (
-                  <Marker 
+                  <LeafletMarker 
                     key={farmer.id} 
                     position={farmer.coordinates}
                     icon={createFarmIcon()}
@@ -144,7 +147,7 @@ export default function FarmersAndProducers() {
                         <p className="text-sm mt-1"><span className="font-semibold">Specialty:</span> {farmer.specialty}</p>
                       </div>
                     </Popup>
-                  </Marker>
+                  </LeafletMarker>
                 ))}
               </MapContainer>
             )}
@@ -170,7 +173,7 @@ export default function FarmersAndProducers() {
                       src={farmer.image}
                       alt={`${farmer.name} in ${farmer.location}`}
                       fill
-                      className="object-contain"
+                      className="object-cover"
                       sizes="(max-width: 1024px) 100vw, 50vw"
                     />
                   </div>

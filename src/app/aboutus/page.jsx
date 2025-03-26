@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import AboutUs from '../components/aboutus/aboutus';
 import HowItWorks from '../components/aboutus/howitworks';
 import FarmersAndProducers from '../components/aboutus/farmers';
+import FAQ from '../components/aboutus/faq';
 
 
 const AboutUsPage = () => {
@@ -28,7 +29,7 @@ const AboutUsPage = () => {
       case 'farmers-producers':
         return <FarmersAndProducers />;
       case 'faqs':
-        return <FAQs />;
+        return <FAQ />;
       default:
         return <AboutUs />;
     }
