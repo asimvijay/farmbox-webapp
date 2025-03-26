@@ -83,8 +83,8 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex space-x-4">
-          <button className="border px-4 py-2 rounded-lg" onClick={() => window.location.href = "/login"}>LOG IN</button>
-          <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
+          <button className="border px-4 py-2 cursor-pointer  rounded-lg" onClick={() => window.location.href = "/login"}>LOG IN</button>
+          <button className="bg-green-500 text-white cursor-pointer px-4 py-2 rounded-lg hover:bg-green-600" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
         </div>
 
         <button className="md:hidden text-green-600" onClick={toggleMobileMenu}>
@@ -150,8 +150,8 @@ const Navbar = () => {
             <Link href="#" className="text-green-600 hover:text-green-300 py-2 px-2">GIFT CARDS</Link>
             
             <div className="flex space-x-4 pt-4">
-              <button className="border border-green-600 text-green-600 px-4 py-2 rounded-lg w-full" onClick={() => window.location.href = "/login"}>LOG IN</button>
-              <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 w-full" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
+              <button className="border cursor-pointer  border-green-600 text-green-600 px-4 py-2 rounded-lg w-full" onClick={() => window.location.href = "/login"}>LOG IN</button>
+              <button className="bg-green-500 cursor-pointer  text-white px-4 py-2 rounded-lg hover:bg-green-600 w-full" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
             </div>
           </div>
         </div>
