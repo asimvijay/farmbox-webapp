@@ -1,15 +1,13 @@
-// app/aboutus/page.jsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AboutUs from '../components/aboutus/aboutus';
 import HowItWorks from '../components/aboutus/howitworks';
 import FarmersAndProducers from '../components/aboutus/farmers';
 import FAQ from '../components/aboutus/faq';
 
-
-const AboutUsPage = () => {
+const AboutUsContent = () => {
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState('about-us');
 
@@ -35,12 +33,14 @@ const AboutUsPage = () => {
     }
   };
 
+  return <div className="p-4">{renderSection()}</div>;
+};
+
+const AboutUsPage = () => {
   return (
- 
-      <div className="p-4">
-        {renderSection()}
-      </div>
-    
+    <Suspense fallback={<div>Loading...</div>}>
+      <AboutUsContent />
+    </Suspense>
   );
 };
 
