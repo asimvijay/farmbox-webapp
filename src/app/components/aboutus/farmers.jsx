@@ -3,35 +3,18 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { FaTractor, FaSeedling, FaMapMarkerAlt, FaRegHandshake } from 'react-icons/fa';
-import { MapContainer, TileLayer, Marker as LeafletMarker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import dynamic from 'next/dynamic';
 import FarmerImage from '../../../../assets/images/farmer.webp';
 import FarmImage from '../../../../assets/images/organic-farm.png';
-import MarkerIcon from "../../../../assets/images/marker-icon.jpg";
-import MarkerIcon2x from "../../../../assets/images/marker-icon2x.jpg";
-import MarkerShadow from "../../../../assets/images/marker-shadow.jpg";
-import FarmM from '../../../../assets/images/farm-m.png';
-// Fix for default marker icons
-const DefaultIcon = L.icon({
-  iconUrl: MarkerIcon.src,
-  iconRetinaUrl: MarkerIcon2x.src,
-  shadowUrl: MarkerShadow.src,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
 
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Custom farm icon
-const createFarmIcon = () => L.icon({
-  iconUrl: FarmM.src,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32]
-});
+// Dynamically import the map component to avoid SSR issues
+const FarmMap = dynamic(
+  () => import('./farmmap'),
+  { 
+    ssr: false,
+    loading: () => <div className="h-96 w-full bg-gray-200 animate-pulse rounded-lg"></div>
+  }
+);
 
 const farmers = [
   {
@@ -123,34 +106,11 @@ export default function FarmersAndProducers() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">Our Farm Locations</h2>
           <div className="h-96 w-full rounded-lg overflow-hidden shadow-xl relative">
-            {typeof window !== 'undefined' && (
-              <MapContainer 
-                center={[36.7783, -119.4179]} 
-                zoom={7} 
-                style={{ height: '100%', width: '100%' }}
-                whenReady={() => setMapReady(true)}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                {farmers.map((farmer) => (
-                  <LeafletMarker 
-                    key={farmer.id} 
-                    position={farmer.coordinates}
-                    icon={createFarmIcon()}
-                  >
-                    <Popup>
-                      <div className="font-sans">
-                        <h3 className="font-bold text-lg">{farmer.name}</h3>
-                        <p className="text-gray-600">{farmer.location}</p>
-                        <p className="text-sm mt-1"><span className="font-semibold">Specialty:</span> {farmer.specialty}</p>
-                      </div>
-                    </Popup>
-                  </LeafletMarker>
-                ))}
-              </MapContainer>
-            )}
+            <FarmMap 
+              farmers={farmers} 
+              center={[36.7783, -119.4179]} 
+              onMapReady={() => setMapReady(true)}
+            />
             {!mapReady && (
               <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
                 <span className="text-gray-500">Loading map...</span>
