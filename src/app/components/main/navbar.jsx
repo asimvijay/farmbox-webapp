@@ -15,6 +15,15 @@ const Navbar = () => {
     setMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  // Don't render navbar for admin routes
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
   const toggleWhyFarmbox = () => {
     setWhyFarmboxOpen(!isWhyFarmboxOpen);
   };
@@ -79,11 +88,11 @@ const Navbar = () => {
 
           <Link href="/farmboxes" className="text-green-600 hover:text-green-300">PRODUCE BOXES</Link>
           <Link href="#" className="text-green-600 hover:text-green-300">GROCERIES</Link>
-          <Link href="#" className="text-green-600 hover:text-green-300">WHERE WE DELIVER</Link>
+          <Link href="/delivery" className="text-green-600 hover:text-green-300">WHERE WE DELIVER</Link>
         </div>
 
         <div className="hidden md:flex space-x-4">
-          <button className="border px-4 py-2 cursor-pointer  rounded-lg" onClick={() => window.location.href = "/login"}>LOG IN</button>
+          <button className="border px-4 py-2 cursor-pointer rounded-lg" onClick={() => window.location.href = "/login"}>LOG IN</button>
           <button className="bg-green-500 text-white cursor-pointer px-4 py-2 rounded-lg hover:bg-green-600" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
         </div>
 
@@ -117,7 +126,13 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white py-4 px-4 shadow-lg">
           <div className="flex flex-col space-y-2">
-            <Link href="/" className="text-green-600 hover:text-green-300 py-2 px-2">HOME</Link>
+            <Link 
+              href="/" 
+              className="text-green-600 hover:text-green-300 py-2 px-2"
+              onClick={closeMobileMenu}
+            >
+              HOME
+            </Link>
             
             {/* Mobile WHY FARMBOX Dropdown */}
             <div className="flex flex-col">
@@ -137,21 +152,85 @@ const Navbar = () => {
               </button>
               
               <div className={`overflow-hidden transition-all duration-300 ${isWhyFarmboxOpen ? 'max-h-40' : 'max-h-0'}`}>
-                <Link href="/aboutus?section=about-us" className="block py-2 px-6 text-green-600 hover:text-green-300">ABOUT US</Link>
-                <Link href="/aboutus?section=how-it-works" className="block py-2 px-6 text-green-600 hover:text-green-300">HOW IT WORKS</Link>
-                <Link href="/aboutus?section=farmers-producers" className="block py-2 px-6 text-green-600 hover:text-green-300">FARMERS AND PRODUCERS</Link>
-                <Link href="/aboutus?section=faqs" className="block py-2 px-6 text-green-600 hover:text-green-300">FAQ'S</Link>
+                <Link 
+                  href="/aboutus?section=about-us" 
+                  className="block py-2 px-6 text-green-600 hover:text-green-300"
+                  onClick={closeMobileMenu}
+                >
+                  ABOUT US
+                </Link>
+                <Link 
+                  href="/aboutus?section=how-it-works" 
+                  className="block py-2 px-6 text-green-600 hover:text-green-300"
+                  onClick={closeMobileMenu}
+                >
+                  HOW IT WORKS
+                </Link>
+                <Link 
+                  href="/aboutus?section=farmers-producers" 
+                  className="block py-2 px-6 text-green-600 hover:text-green-300"
+                  onClick={closeMobileMenu}
+                >
+                  FARMERS AND PRODUCERS
+                </Link>
+                <Link 
+                  href="/aboutus?section=faqs" 
+                  className="block py-2 px-6 text-green-600 hover:text-green-300"
+                  onClick={closeMobileMenu}
+                >
+                  FAQ'S
+                </Link>
               </div>
             </div>
 
-            <Link href="/farmboxes" className="text-green-600 hover:text-green-300 py-2 px-2">PRODUCE BOXES</Link>
-            <Link href="#" className="text-green-600 hover:text-green-300 py-2 px-2">GROCERIES</Link>
-            <Link href="#" className="text-green-600 hover:text-green-300 py-2 px-2">WHERE WE DELIVER</Link>
-            <Link href="#" className="text-green-600 hover:text-green-300 py-2 px-2">GIFT CARDS</Link>
+            <Link 
+              href="/farmboxes" 
+              className="text-green-600 hover:text-green-300 py-2 px-2"
+              onClick={closeMobileMenu}
+            >
+              PRODUCE BOXES
+            </Link>
+            <Link 
+              href="#" 
+              className="text-green-600 hover:text-green-300 py-2 px-2"
+              onClick={closeMobileMenu}
+            >
+              GROCERIES
+            </Link>
+            <Link 
+              href="#" 
+              className="text-green-600 hover:text-green-300 py-2 px-2"
+              onClick={closeMobileMenu}
+            >
+              WHERE WE DELIVER
+            </Link>
+            <Link 
+              href="/delivery" 
+              className="text-green-600 hover:text-green-300 py-2 px-2"
+              onClick={closeMobileMenu}
+            >
+              GIFT CARDS
+            </Link>
             
             <div className="flex space-x-4 pt-4">
-              <button className="border cursor-pointer  border-green-600 text-green-600 px-4 py-2 rounded-lg w-full" onClick={() => window.location.href = "/login"}>LOG IN</button>
-              <button className="bg-green-500 cursor-pointer  text-white px-4 py-2 rounded-lg hover:bg-green-600 w-full" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
+              <button 
+                className="border cursor-pointer border-green-600 text-green-600 px-4 py-2 rounded-lg w-full" 
+                onClick={() => {
+                  closeMobileMenu();
+                  window.location.href = "/login";
+                }}
+              >
+                LOG IN
+              </button>
+              <button 
+                className="bg-green-500 cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-green-600 w-full" 
+                onClick={() => {
+                  closeMobileMenu();
+                  window.location.href = "/signup";
+                }}
+              >
+                SIGN UP
+              </button>
             </div>
           </div>
         </div>

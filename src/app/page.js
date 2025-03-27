@@ -106,7 +106,7 @@ export default function LandingPage() {
                 <div className="flex justify-center mb-4">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-center mb-2">{feature.title}</h3>
+                <h3 className="text-xl font-bold text-black text-center mb-2">{feature.title}</h3>
                 <p className="text-gray-600 text-center">{feature.description}</p>
               </motion.div>
             ))}
@@ -137,7 +137,7 @@ export default function LandingPage() {
                     1
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">Choose Your Plan</h3>
+                    <h3 className="font-bold text-black text-lg">Choose Your Plan</h3>
                     <p className="text-gray-600">Select from our variety of farm-fresh produce boxes</p>
                   </div>
                 </div>
@@ -146,7 +146,7 @@ export default function LandingPage() {
                     2
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">Customize Your Box</h3>
+                    <h3 className="font-bold text-black text-lg">Customize Your Box</h3>
                     <p className="text-gray-600">Add your favorites or let us surprise you with seasonal picks</p>
                   </div>
                 </div>
@@ -155,7 +155,7 @@ export default function LandingPage() {
                     3
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">Enjoy Freshness</h3>
+                    <h3 className="font-bold text-black text-lg">Enjoy Freshness</h3>
                     <p className="text-gray-600">Receive your delivery and enjoy farm-to-table quality</p>
                   </div>
                 </div>
