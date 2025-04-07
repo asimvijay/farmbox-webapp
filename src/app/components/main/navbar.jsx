@@ -86,14 +86,14 @@ const Navbar = () => {
             </div>
           </div>
 
-          <Link href="/farmboxes" className="text-green-600 hover:text-green-300">PRODUCE BOXES</Link>
-          <Link href="#" className="text-green-600 hover:text-green-300">GROCERIES</Link>
-          <Link href="/delivery" className="text-green-600 hover:text-green-300">WHERE WE DELIVER</Link>
+          <Link href="/farmboxes" className="relative inline-block text-green-600 after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 after:h-[2px] after:bg-green-600 after:transition-all after:duration-300 hover:after:left-0 hover:after:w-full">PRODUCE BOXES</Link>
+          <Link href="#" className="relative inline-block text-green-600 after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 after:h-[2px] after:bg-green-600 after:transition-all after:duration-300 hover:after:left-0 hover:after:w-full">GROCERIES</Link>
+          <Link href="/delivery" className="relative inline-block text-green-600 after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 after:h-[2px] after:bg-green-600 after:transition-all after:duration-300 hover:after:left-0 hover:after:w-full">WHERE WE DELIVER</Link>
         </div>
 
         <div className="hidden md:flex space-x-4">
-          <button className="border px-4 py-2 cursor-pointer rounded-lg" onClick={() => window.location.href = "/login"}>LOG IN</button>
-          <button className="bg-green-500 text-white cursor-pointer px-4 py-2 rounded-lg hover:bg-green-600" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
+          <button className="border px-4 py-2 cursor-pointer rounded-lg text-green-500 hover:text-white hover:bg-green-500 transition duration-300" onClick={() => window.location.href = "/login"}>LOG IN</button>
+          <button className="bg-green-500 text-white cursor-pointer px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
         </div>
 
         <button className="md:hidden text-green-600" onClick={toggleMobileMenu}>

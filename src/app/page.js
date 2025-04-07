@@ -56,24 +56,24 @@ export default function LandingPage() {
           className="object-cover"
           priority
         />
-        <div className="relative z-20 h-full flex flex-col justify-center px-6 lg:px-16">
+        <div className="relative z-20 h-full flex flex-col justify-center px-6 lg:px-16 ">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="max-w-3xl"
           >
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 ">
               Farm Fresh, Delivered
             </h1>
-            <p className="text-xl md:text-2xl text-white mb-8">
+            <p className="text-xl md:text-2xl text-white mb-8 ">
               Get the best local, organic produce delivered weekly to your doorstep
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 flex items-center">
+              <button className="bg-green-600 hover:bg-white hover:text-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 flex items-center cursor-pointer">
                 Get Started <FaArrowRight className="ml-2" />
               </button>
-              <button className="bg-white text-green-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg transition duration-300">
+              <button className="bg-white text-green-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg transition duration-300 cursor-pointer">
                 How It Works
               </button>
             </div>
@@ -86,7 +86,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose FarmBox
+              Why Choose FarmBox ?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               We connect you directly with local farmers for the freshest seasonal produce
@@ -179,7 +179,7 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white/10 p-8 rounded-xl backdrop-blur-sm"
+                className="bg-white/10 p-8 rounded-xl backdrop-blur-sm hover:bg-green-600 text-white transition duration-300"
               >
                 <p className="italic mb-4">"{testimonial.quote}"</p>
                 <p className="font-medium">— {testimonial.author}</p>
@@ -202,7 +202,7 @@ export default function LandingPage() {
             <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
               Get Started
             </button>
-            <button className="border-2 border-green-600 text-green-600 hover:bg-green-50 font-bold py-3 px-8 rounded-lg transition duration-300">
+            <button className="border-2 border-green-600 text-green-600 hover:bg-green-700 hover:text-white  font-bold py-3 px-8 rounded-lg transition duration-300">
               Learn More
             </button>
           </div>
