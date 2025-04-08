@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import CropLogo from "@/public/crop_logo.png";
 import DefaultUserIcon from "@/public/default_user.png"; // Add this image
 import LoggedInUserIcon from "@/public/user.png"; // Add this image
+import ProfilePopup from "./profile";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -17,6 +18,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -42,7 +44,10 @@ const Navbar = () => {
     checkAuthStatus();
   }, [pathname]);
   
-
+// In your user button click handler:
+const toggleProfilePopup = () => {
+  setShowProfilePopup(!showProfilePopup);
+};
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -166,7 +171,10 @@ const Navbar = () => {
 
         {/* Dropdown */}
         <div className="absolute right-0 mt-12 w-48 bg-white rounded-md cursor-pointer shadow-lg py-1 z-10000 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform -translate-y-2 group-hover:translate-y-0 group-hover:delay-300">
-          <Link href="/profile" className="block px-4 py-2 text-sm cursor-pointer text-gray-700 hover:bg-green-50">My Profile</Link>
+        <button onClick={toggleProfilePopup} className="block w-full text-left cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
+          My Profile
+        </button>
+
           <Link href="/orders" className="block px-4 py-2 cursor-pointer text-sm text-gray-700 hover:bg-green-50">My Orders</Link>
           <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
             Logout
@@ -187,7 +195,14 @@ const Navbar = () => {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
     </svg>
   </button>
+  
 </div>
+{showProfilePopup && (
+  <div className="absolute top-24 right-6 z-[10001]">
+    <ProfilePopup onClose={() => setShowProfilePopup(false)} userData={userData} />
+
+  </div>
+)}
 
 
       {/* Secondary Navbar - Only visible on /farmboxes page */}
