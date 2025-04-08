@@ -1,19 +1,53 @@
+
+
+
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import farmLoginImage from '../../../assets/images/farm-login.jpg';
 import CropLogo from '@/public/crop_logo.png';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/farmboxes/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          remember: rememberMe
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      router.push('/');
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -50,7 +84,13 @@ export default function LoginPage() {
           
           <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Log in to your account</h1>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+
+<form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email address
