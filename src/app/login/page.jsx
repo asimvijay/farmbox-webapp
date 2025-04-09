@@ -24,7 +24,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/farmboxes/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Left side - Image */}
-      <div className="lg:w-1/2 relative h-64 lg:h-auto">
+      <div className="lg:w-2/3 relative h-64 lg:h-auto">
         <Image
           src={farmLoginImage}
           alt="Fresh farm produce"
@@ -70,7 +70,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="lg:w-1/2 flex items-center justify-center p-8">
+      <div className="lg:w-1/3 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="flex justify-center mb-8">
             <Image 
@@ -103,7 +103,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                 placeholder="your@email.com"
               />
             </div>
@@ -120,7 +120,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                className="w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                 placeholder="••••••••"
               />
             </div>

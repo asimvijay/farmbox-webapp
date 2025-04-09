@@ -1,4 +1,4 @@
-import { getDb } from './db';
+import { getDb } from '../farmboxes/db';
 
 export default async function handler(req, res) {
   if (req.method !== 'DELETE') {

@@ -18,7 +18,8 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
     address: userData?.address || "",
     city: userData?.city || "",
     country: userData?.country || "",
-    postalCode: userData?.postalCode || ""
+    postalCode: userData?.postalCode || "",
+    area: userData?.area || ""
   });
   const [securitySettingsOpen, setSecuritySettingsOpen] = useState(false);
   const [referralCount, setReferralCount] = useState(userData?.referralCount || 0);
@@ -33,7 +34,8 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
         address: userData.address || "",
         city: userData.city || "",
         country: userData.country || "",
-        postalCode: userData.postalCode || ""
+        postalCode: userData.postalCode || "",
+        area: userData.area || ""
       });
     }
   }, [userData]);
@@ -54,7 +56,7 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
 
   const handleUsernameUpdate = async () => {
     try {
-      const response = await fetch('/api/user/update-username', {
+      const response = await fetch('/api/auth/update_username', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,17 +75,38 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
 
   const handleProfileUpdate = async () => {
     try {
-      const response = await fetch('/api/user/update-profile', {
+      const response = await fetch('/api/auth/updateuser_profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          country: formData.country,
+          postalCode: formData.postalCode,
+          area: formData.area
+        }),
       });
-
+  
+      const data = await response.json();
+      
       if (response.ok) {
         setIsEditingProfile(false);
+        // Update local state with the returned user data
+        setFormData(prev => ({
+          ...prev,
+          phone: data.user.phone || prev.phone,
+          address: data.user.address || prev.address,
+          city: data.user.city || prev.city,
+          country: data.user.country || prev.country,
+          postalCode: data.user.postalCode || prev.postalCode,
+          area: data.user.area || prev.area
+        }));
         router.refresh();
+      } else {
+        console.error('Profile update failed:', data.message);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -169,7 +192,7 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
                 )}
               </div>
               <p className="text-gray-600">{userData?.email || "user@example.com"}</p>
-              <p className="text-xs text-gray-400 mt-1">Member since: {new Date(userData?.createdAt).toLocaleDateString()}</p>
+              <p className="text-xs text-gray-400 mt-1">  Member since: {new Date(userData?.created_at).toLocaleDateString()}</p>
             </div>
           </div>
 
@@ -215,7 +238,7 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
                     placeholder="Add phone number"
                   />
                 ) : (
-                  <span className="text-gray-800">{formData.phone || "Not provided"}</span>
+                  <span className="text-gray-800">{userData?.phone || "Not provided"}</span>
                 )}
               </div>
 
@@ -231,7 +254,7 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
                     placeholder="Street address"
                   />
                 ) : (
-                  <span className="text-gray-800">{formData.address || "Not provided"}</span>
+                  <span className="text-gray-800">{userData?.address || "Not provided"}</span>
                 )}
               </div>
 
@@ -268,6 +291,17 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
                       onChange={handleInputChange}
                       className="border-b border-gray-300 focus:border-green-500 outline-none text-right"
                       placeholder="Postal code"
+                    />
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Area:</span>
+                    <input
+                      type="text"
+                      name="area"
+                      value={formData.area}
+                      onChange={handleInputChange}
+                      className="border-b border-gray-300 focus:border-green-500 outline-none text-right"
+                      placeholder="Select area"
                     />
                   </div>
                 </>

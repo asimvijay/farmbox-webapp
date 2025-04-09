@@ -1,4 +1,4 @@
-import sql from './db';
+import sql from '../farmboxes/db';
 import bcrypt from 'bcryptjs';
 import { setLoginSession } from './auth';
 
@@ -36,7 +36,9 @@ export default async function handler(req, res) {
     await setLoginSession(res, {
       id: user.id,
       name: user.name,
-      email: user.email
+      email: user.email,
+      created_at: user.created_at,
+      
     });
 
     return res.status(200).json({
@@ -44,7 +46,8 @@ export default async function handler(req, res) {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        created_at: user.created_at,
       }
     });
 

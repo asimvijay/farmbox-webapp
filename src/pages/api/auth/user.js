@@ -1,5 +1,5 @@
 import { getLoginSession } from './auth';
-import sql from './db';
+import sql from '../farmboxes/db';
 
 export default async function handler(req, res) {
   try {

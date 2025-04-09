@@ -1,4 +1,4 @@
-import sql from './db';
+import sql from '../farmboxes/db';
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {

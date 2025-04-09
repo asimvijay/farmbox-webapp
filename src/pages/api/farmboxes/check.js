@@ -1,4 +1,4 @@
-import { getSessionToken } from './auth';
+import { getSessionToken } from '../auth/auth';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -16,7 +16,8 @@ export default async function handler(req, res) {
       user: {
         id: session.id,
         name: session.name,
-        email: session.email
+        email: session.email,
+        created_at: session.created_at,
       }
     });
 

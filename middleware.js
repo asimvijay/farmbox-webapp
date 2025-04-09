@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSessionToken } from './src/pages/api/farmboxes/auth';
+import { getSessionToken } from './src/pages/api/auth/auth';
 
 export async function middleware(request) {
   const session = await getSessionToken(request.cookies);

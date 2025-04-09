@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getSessionToken } from "@/pages/api/farmboxes/auth";
+import { getSessionToken } from "@/pages/api/auth/auth";
 import { useRouter } from "next/navigation";
 import CropLogo from "@/public/crop_logo.png";
 import DefaultUserIcon from "@/public/default_user.png"; // Add this image
@@ -47,6 +47,7 @@ const Navbar = () => {
 // In your user button click handler:
 const toggleProfilePopup = () => {
   setShowProfilePopup(!showProfilePopup);
+  console .log("User data:", userData); // Log the user data to the console
 };
 
   useEffect(() => {
@@ -77,7 +78,7 @@ const toggleProfilePopup = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/farmboxes/logout', {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include'
       });
@@ -113,7 +114,7 @@ const toggleProfilePopup = () => {
     <nav className="shadow-md">
       {/* Main Navbar */}
       <div
-  className={`relative z-10000 max-w-7xl mx-auto px-7 sm:px-6 lg:px-8 flex justify-between items-center py-4 transform transition-all duration-1000 ease-out ${
+  className={`relative z-10000 max-w-7xl mx-auto px-7 sm:px-6 lg:px-8 flex justify-between bg-white items-center py-4 transform transition-all duration-1000 ease-out ${
     isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
   }`}
 >
@@ -183,7 +184,7 @@ const toggleProfilePopup = () => {
       </div>
     ) : (
       <div className="flex space-x-2">
-        <button className="border px-4 py-2 cursor-pointer rounded-lg" onClick={() => window.location.href = "/login"}>LOG IN</button>
+        <button className="border px-4 py-2 cursor-pointer border-gray-600 text-gray-600 rounded-lg" onClick={() => window.location.href = "/login"}>LOG IN</button>
         <button className="bg-green-500 text-white cursor-pointer px-4 py-2 rounded-lg hover:bg-green-600" onClick={() => window.location.href = "/signup"}>SIGN UP</button>
       </div>
     )}
