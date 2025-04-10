@@ -106,7 +106,7 @@ export default function FarmBoxGrid() {
 
       {/* POPUP */}
       {selectedBox && selectedBox.items && selectedBox.items.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-10001 flex items-center justify-center backdrop-blur-sm">
           <div 
             className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 relative border border-gray-200"
             onClick={(e) => e.stopPropagation()}
