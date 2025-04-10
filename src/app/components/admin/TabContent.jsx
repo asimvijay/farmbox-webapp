@@ -1,11 +1,14 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import StatsCards from './statscard';
+import StatsCards from './customer/statscard';
 import Charts from './chart';
-import RecentOrders from './RecentOrders';
-import ProductsList from './ProductsList';
-import CustomersList from './customers';
+import RecentOrders from './customer/RecentOrders';
+import ProductsList from './products/ProductsList';
+import CustomersList from './customer/customers';
+import CreateFarmBox from './products/createbox';
+import FarmBoxesManager from './products/farmbox';
+import CreateProduct from './products/createproduct';
 
 const TabContent = ({ activeTab }) => {
   const [dashboardData, setDashboardData] = useState({
@@ -15,6 +18,8 @@ const TabContent = ({ activeTab }) => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCreateFarmBox, setShowCreateFarmBox] = useState(false); // <-- Added this
+  const [showCreateProduct, setShowCreateProduct] = useState(false); 
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -87,18 +92,24 @@ const TabContent = ({ activeTab }) => {
           <RecentOrders orders={dashboardData.recentOrders} />
         </>
       );
-    case 'products':
-      return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-800">Products Management</h3>
-            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-              Add New Product
-            </button>
+      case 'products':
+        return showCreateProduct?(
+          <CreateProduct onBack={() => setShowCreateProduct(false)} />
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">Products Management</h3>
+              <button 
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                onClick={() => setShowCreateProduct(true)}
+              >
+                Create New Product
+              </button>
+            </div>
+            <ProductsList/>
           </div>
-          <ProductsList />
-        </div>
-      );
+        
+        );
     case 'orders':
       return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -127,6 +138,23 @@ const TabContent = ({ activeTab }) => {
           <Charts showAll={true} />
         </div>
       );
+      case 'farmboxes':
+        return showCreateFarmBox ? (
+          <CreateFarmBox onBack={() => setShowCreateFarmBox(false)} />
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">FarmBox Management</h3>
+              <button 
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                onClick={() => setShowCreateFarmBox(true)}
+              >
+                Create New FarmBox
+              </button>
+            </div>
+            <FarmBoxesManager />
+          </div>
+        );
     default:
       return null;
   }

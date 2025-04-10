@@ -2,10 +2,11 @@ import sql from './db';
 
 export default async function handler(req, res) {
   try {
-    const products = await sql`
+    const products = await sql
+    `
       SELECT * FROM products
-      ORDER BY sales DESC
-      LIMIT 5
+      ORDER BY stock DESC
+  
     `;
     res.status(200).json(products);
   } catch (error) {
