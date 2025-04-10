@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import DefaultUserIcon from "@/public/user.png";
 import VerifiedBadge from "@/public/verified.webp";
 
-const ProfilePopup = ({ userData, onClose, onLogout }) => {
+const ProfilePopup = ({ userData, onClose, handleLogout }) => {
   const router = useRouter();
   const popupRef = useRef(null);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -386,7 +386,7 @@ const ProfilePopup = ({ userData, onClose, onLogout }) => {
 
           {/* Logout Button */}
           <button
-            onClick={onLogout}
+            onClick={handleLogout}
             className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition"
           >
             Logout

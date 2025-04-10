@@ -32,8 +32,6 @@ export default async function handler(req, res) {
       verified: user.verified,
       createdAt: user.created_at,
       avatar: user.avatar_url,
-      referralCount: user.referral_count,
-      activeReferrals: user.active_referrals
     });
 
   } catch (error) {

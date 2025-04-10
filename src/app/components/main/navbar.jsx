@@ -10,6 +10,7 @@ import CropLogo from "@/public/crop_logo.png";
 import DefaultUserIcon from "@/public/default_user.png"; // Add this image
 import LoggedInUserIcon from "@/public/user.png"; // Add this image
 import ProfilePopup from "./profile";
+import MyOrders from "./myorder";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -19,6 +20,8 @@ const Navbar = () => {
   const [userData, setUserData] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [userOrder, setUserOrder] = useState(null);
+  const [showMyOrders, setShowMyOrders] = useState(false);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -32,9 +35,11 @@ const Navbar = () => {
           const data = await response.json();
           setIsLoggedIn(true);
           setUserData(data.user);
+          setUserOrder(data.orders); // Assuming you want to set user orders as well
         } else {
           setIsLoggedIn(false);
           setUserData(null);
+          setUserOrder(null); 
         }
       } catch (error) {
         console.error('Error checking auth status:', error);
@@ -47,7 +52,12 @@ const Navbar = () => {
 // In your user button click handler:
 const toggleProfilePopup = () => {
   setShowProfilePopup(!showProfilePopup);
-  console .log("User data:", userData); // Log the user data to the console
+
+};
+
+const toggleMyOrders = () => {
+  setShowMyOrders(!showMyOrders);
+  console.log(userOrder);
 };
 
   useEffect(() => {
@@ -176,7 +186,9 @@ const toggleProfilePopup = () => {
           My Profile
         </button>
 
-          <Link href="/orders" className="block px-4 py-2 cursor-pointer text-sm text-gray-700 hover:bg-green-50">My Orders</Link>
+        <button onClick={toggleMyOrders} className="block w-full text-left cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
+          My Orders
+        </button>
           <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
             Logout
           </button>
@@ -201,6 +213,12 @@ const toggleProfilePopup = () => {
 {showProfilePopup && (
   <div className="absolute top-24 right-6 z-[10001]">
     <ProfilePopup onClose={() => setShowProfilePopup(false)} userData={userData} />
+
+  </div>
+)}
+{showMyOrders && (
+  <div className="absolute top-24 right-6 z-[10001]">
+    <MyOrders onClose={() => setShowMyOrders(false)} orders={userOrder} />
 
   </div>
 )}
