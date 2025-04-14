@@ -1,5 +1,5 @@
 // data.jsx
-import FarmBox1 from "../../../../assets/images/Farmbox1.jpg";
+import FarmBox1 from "@/public/Farmbox1.jpg";
 import OnionRed from "../../../../assets/images/onion.png";
 import Arugula from "../../../../assets/images/arugula.webp";
 import Broccoli from "../../../../assets/images/broccoli.webp";

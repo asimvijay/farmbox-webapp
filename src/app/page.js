@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import heroImage from '../../assets/images/hero.webp';
-import boxImage from '../../assets/images/Farmbox1.jpg';
+import boxImage from '@/public/Farmbox1.jpg';
 import { motion } from 'framer-motion';
 import { FaArrowRight, FaCalendar, FaLeaf, FaTruck } from 'react-icons/fa';
 
