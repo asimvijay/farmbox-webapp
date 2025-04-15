@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const products = await sql`SELECT * FROM products`;
-      console.log('Fetched products:', products);
+     
       res.status(200).json(products);
     } catch (error) {
       console.error('Database error:', error);

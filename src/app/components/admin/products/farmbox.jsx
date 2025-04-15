@@ -4,247 +4,189 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const FarmBoxesManager = () => {
-  const [boxes, setBoxes] = useState([]);
+  const [farmboxes, setFarmboxes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [newBox, setNewBox] = useState({
-    name: '',
-    description: '',
-    price: '',
-    products: [],
-    image: '',
-    category: '',
-    isFeatured: false,
-    deliveryFrequency: '',
-    boxType: 'regular',
-    maxQuantity: 0
-  });
-  const [allProducts, setAllProducts] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFarmboxes = async () => {
       try {
-        setIsLoading(true);
-        const [boxesRes, productsRes] = await Promise.all([
-          fetch('/api/farmboxes'),
-          fetch('/api/products')
-        ]);
-
-        if (!boxesRes.ok || !productsRes.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
-        const [boxesData, productsData] = await Promise.all([
-          boxesRes.json(),
-          productsRes.json()
-        ]);
-
-        setBoxes(boxesData);
-        setAllProducts(productsData);
+        const response = await fetch('/api/farmboxes');
+        if (!response.ok) throw new Error('Failed to fetch farmboxes');
+        const data = await response.json();
+        const parsedData = data.map(box => ({
+          ...box,
+          products: JSON.parse(box.products)
+        }));
+        setFarmboxes(parsedData);
       } catch (err) {
-        console.error('Error fetching data:', err);
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
+    fetchFarmboxes();
   }, []);
 
-
-
-  const handleProductToggle = (product) => {
-    setNewBox(prev => {
-      const existingProduct = prev.products.find(p => p.productId === product._id);
-      if (existingProduct) {
-        return {
-          ...prev,
-          products: prev.products.filter(p => p.productId !== product._id)
-        };
-      }
-      return {
-        ...prev,
-        products: [...prev.products, {
-          productId: product._id,
-          name: product.name,
-          quantity: 1
-        }]
-      };
-    });
+  const handleEdit = (boxId) => {
+    router.push(`/edit-farmbox/${boxId}`);
   };
 
-  const handleQuantityChange = (productId, value) => {
-    setNewBox(prev => ({
-      ...prev,
-      products: prev.products.map(p => 
-        p.productId === productId ? { ...p, quantity: Math.max(1, Number(value)) } : p
-      )
-    }));
+  const handleDelete = async (boxId) => {
+    if (!confirm('Are you sure you want to delete this farm box?')) return;
+    
+    try {
+      const response = await fetch('/api/farmboxes', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: boxId }),
+      });
+
+      if (!response.ok) throw new Error('Delete failed');
+      
+      setFarmboxes(prev => prev.filter(box => box.id !== boxId));
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
-  // Rest of the loading and error states remain the same...
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      {/* ... existing header and create button ... */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mx-4">
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="text-2xl font-bold text-gray-800">Manage Farm Boxes</h3>
+        <div className="flex gap-2">
+          <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+            {farmboxes.length} Available Boxes
+          </span>
+        </div>
+      </div>
 
-      {isCreating && (
-        <div className="mb-8 p-6 border border-gray-200 rounded-lg">
-          <h4 className="text-lg font-medium text-gray-700 mb-4">Create New Farm Box</h4>
-          <form onSubmit={handleCreateBox}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* ... existing name, price, description, image fields ... */}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select
-                  value={newBox.category}
-                  onChange={(e) => setNewBox({...newBox, category: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  required
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {farmboxes.length > 0 ? (
+          farmboxes.map((box) => (
+            <div 
+              key={box.id} 
+              className="group relative bg-white rounded-xl  shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 overflow-hidden"
+            >
+              {/* Action Buttons */}
+              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                <button 
+                  onClick={() => handleEdit(box.id)}
+                  className="p-2 bg-white/90 backdrop-blur-sm cursor-pointer rounded-lg shadow-sm hover:bg-green-50 transition-colors duration-200"
+                  aria-label="Edit farm box"
                 >
-                  <option value="">Select Category</option>
-                  <option value="vegetables">Vegetables</option>
-                  <option value="fruits">Fruits</option>
-                  <option value="mixed">Mixed</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Frequency</label>
-                <select
-                  value={newBox.deliveryFrequency}
-                  onChange={(e) => setNewBox({...newBox, deliveryFrequency: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  required
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                <button 
+                  onClick={() => handleDelete(box.id)}
+                  className="p-2 bg-white/90 backdrop-blur-sm rounded-lg cursor-pointer shadow-sm hover:bg-red-50 transition-colors duration-200"
+                  aria-label="Delete farm box"
                 >
-                  <option value="">Select Frequency</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="bi-weekly">Bi-Weekly</option>
-                  <option value="monthly">Monthly</option>
-                </select>
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Box Type</label>
-                <select
-                  value={newBox.boxType}
-                  onChange={(e) => setNewBox({...newBox, boxType: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  required
-                >
-                  <option value="regular">Regular</option>
-                  <option value="featured">Featured</option>
-                </select>
+              {/* Category Badge */}
+              <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-full">
+                {box.category}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max Quantity</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={newBox.maxQuantity}
-                  onChange={(e) => setNewBox({...newBox, maxQuantity: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  required
-                />
-              </div>
+              {/* Image Section */}
+              {box.image && (
+                <div className="h-56 overflow-hidden">
+                  <img 
+                    src={box.image} 
+                    alt={box.name} 
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+              )}
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={newBox.isFeatured}
-                  onChange={(e) => setNewBox({...newBox, isFeatured: e.target.checked})}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label className="ml-2 text-sm text-gray-700">Featured Box</label>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Products</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {allProducts.map(product => (
-                    <div key={product._id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`product-${product._id}`}
-                        checked={newBox.products.some(p => p.productId === product._id)}
-                        onChange={() => handleProductToggle(product)}
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor={`product-${product._id}`} className="ml-2 text-sm text-gray-700">
-                        {product.name}
-                      </label>
-                    </div>
-                  ))}
+              {/* Card Content */}
+              <div className="p-5">
+                <div className="flex justify-between items-start mb-3">
+                  <h4 className="text-lg font-bold text-gray-800 truncate">{box.name}</h4>
+                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md text-sm font-semibold">
+                    ${parseFloat(box.price).toFixed(2)}
+                  </span>
                 </div>
                 
-                <div className="mt-4 space-y-2">
-                  {newBox.products.map(product => (
-                    <div key={product.productId} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                      <span className="text-sm">{product.name}</span>
-                      <input
-                        type="number"
-                        min="1"
-                        value={product.quantity}
-                        onChange={(e) => handleQuantityChange(product.productId, e.target.value)}
-                        className="w-20 px-2 py-1 border rounded text-sm"
-                      />
-                    </div>
-                  ))}
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{box.description}</p>
+                
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <svg className="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                      <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
+                    </svg>
+                    {box.deliveryfrequency}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <svg className="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                    Max {box.maxquantity}
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h5 className="text-sm font-semibold text-gray-700 mb-2">Includes:</h5>
+                  <div className="space-y-2">
+                    {box.products.map((product, index) => (
+                      <div key={index} className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">{product.name}</span>
+                        <span className="text-green-600 font-medium">{product.quantity}kg</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-            {/* ... existing form buttons ... */}
-          </form>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {boxes.map(box => (
-          <div key={box.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-            {/* ... existing image and header ... */}
-            <div className="p-4">
-              {/* ... existing name and price ... */}
-              <div className="mt-2 space-y-1 text-sm">
-                <p><span className="font-medium">Category:</span> {box.category}</p>
-                <p><span className="font-medium">Delivery:</span> {box.deliveryFrequency}</p>
-                <p><span className="font-medium">Type:</span> {box.boxType}</p>
-                <p><span className="font-medium">Max Qty:</span> {box.maxQuantity}</p>
-                {box.isFeatured && <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Featured</span>}
-              </div>
-              
-              <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Includes:</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  {box.products.slice(0, 3).map((product, index) => (
-                    <li key={index}>• {product.name} ({product.quantity}kg)</li>
-                  ))}
-                  {box.products.length > 3 && (
-                    <li className="text-green-600">+ {box.products.length - 3} more</li>
-                  )}
-                </ul>
-              </div>
-              <div className="mt-6 flex space-x-2">
-                <button 
-                  onClick={() => router.push(`/admin/farmboxes/${box._id}`)}
-                  className="flex-1 bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1.5 rounded text-sm font-medium"
-                >
-                  Edit
-                </button>
-                <button 
-                  onClick={() => handleDeleteBox(box._id)}
-                  className="flex-1 bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded text-sm font-medium"
-                >
-                  Delete
-                </button>
-              </div>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <div className="max-w-md mx-auto">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <h4 className="mt-4 text-lg font-medium text-gray-900">No farmboxes available</h4>
+              <p className="mt-1 text-sm text-gray-500">Create your first farmbox to get started.</p>
             </div>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
