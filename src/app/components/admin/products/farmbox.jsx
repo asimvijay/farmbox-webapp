@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Farmbox1 from '@/public/Farmbox1.jpg';
 
 const FarmBoxesManager = () => {
   const [farmboxes, setFarmboxes] = useState([]);
@@ -128,7 +129,7 @@ const FarmBoxesManager = () => {
               {box.image && (
                 <div className="h-56 overflow-hidden">
                   <img 
-                    src={box.image} 
+                    src={Farmbox1.src} 
                     alt={box.name} 
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
