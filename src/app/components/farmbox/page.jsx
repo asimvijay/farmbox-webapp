@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Farmbox1 from "@/public/Farmbox1.jpg";
 
 export default function FarmBoxGrid() {
   const [selectedBox, setSelectedBox] = useState(null);
@@ -110,7 +111,7 @@ export default function FarmBoxGrid() {
             >
               <div className="relative h-80">
                 <Image
-                  src={box.image}
+                  src={Farmbox1.src}
                   alt={box.title}
                   fill
                   className="object-cover hover:scale-105 transition-transform duration-300"
