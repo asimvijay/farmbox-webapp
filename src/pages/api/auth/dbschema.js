@@ -124,6 +124,20 @@ export default async function handler(req, res) {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+        // Create cart_items table
+        await sql`
+        CREATE TABLE IF NOT EXISTS cart_items (
+          id SERIAL PRIMARY KEY,
+          customer_id VARCHAR(20) NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+          box_id INT NOT NULL REFERENCES farmboxes(id) ON DELETE CASCADE,
+          quantity INT NOT NULL DEFAULT 1,
+          frequency VARCHAR(50),
+          price NUMERIC NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+  
 
     // Drop old trigger function if exists
     await sql`DROP FUNCTION IF EXISTS update_customer_totals CASCADE`;

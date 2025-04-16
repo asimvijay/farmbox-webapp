@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate customer ID (you might want to use a better ID generation strategy)
+    // Generate customer ID
     const customerId = `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
 
     // Insert new customer
@@ -39,7 +39,8 @@ export default async function handler(req, res) {
         phone,
         address,
         total_orders,
-        total_spent
+        total_spent,
+        user_type
       ) VALUES (
         ${customerId},
         ${`${firstName} ${lastName}`},
@@ -48,8 +49,9 @@ export default async function handler(req, res) {
         NULL,
         NULL,
         0,
-        0
-      ) RETURNING id, name, email
+        0,
+        'user'  -- This marks the user as a registered profile
+      ) RETURNING id, name, email, user_type
     `;
 
     return res.status(201).json({

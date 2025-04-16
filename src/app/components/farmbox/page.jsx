@@ -3,43 +3,426 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Farmbox1 from "@/public/Farmbox1.jpg";
+import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
 
 export default function FarmBoxGrid() {
   const [selectedBox, setSelectedBox] = useState(null);
   const [farmboxes, setFarmboxes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const [quantities, setQuantities] = useState({});
+  const [frequencies, setFrequencies] = useState({});
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchFarmboxes = async () => {
+    const checkUser = async () => {
       try {
-        setLoading(true);
-        const response = await fetch('/api/farmboxes');
-        if (!response.ok) throw new Error('Failed to fetch farmboxes');
-        const data = await response.json();
-        
-        const processedData = data.map(box => ({
-          ...box,
-          title: box.name,          // Map name to title
-          items: JSON.parse(box.products),  // Parse products string to array
-          price: `₹${box.price}`,    // Format price with currency symbol
-        }));
-        
-        setFarmboxes(processedData);
-        setError(null);
+        const response = await fetch('/api/farmboxes/check');
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData.user);
+        }
       } catch (error) {
-        console.error('Fetch error:', error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
+        console.error('User check error:', error);
       }
     };
 
+    checkUser();
     fetchFarmboxes();
   }, []);
 
+  const fetchFarmboxes = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/farmboxes');
+      if (!response.ok) throw new Error('Failed to fetch farmboxes');
+      const data = await response.json();
+      
+      const processedData = data.map(box => ({
+        ...box,
+        title: box.name,
+        items: JSON.parse(box.products),
+        price: `₹${box.price}`,
+      }));
+      
+      // Initialize quantities and frequencies
+      const initialQuantities = {};
+      const initialFrequencies = {};
+      processedData.forEach(box => {
+        initialQuantities[box.id] = 1;
+        initialFrequencies[box.id] = box.deliveryfrequency;
+      });
+      
+      setQuantities(initialQuantities);
+      setFrequencies(initialFrequencies);
+      setFarmboxes(processedData);
+      setError(null);
+    } catch (error) {
+      console.error('Fetch error:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBoxClick = (box) => {
     setSelectedBox(box);
+  };
+
+  const handleQuantityChange = (boxId, value) => {
+    setQuantities(prev => ({
+      ...prev,
+      [boxId]: parseInt(value, 10)
+    }));
+  };
+
+  const handleFrequencyChange = (boxId, value) => {
+    setFrequencies(prev => ({
+      ...prev,
+      [boxId]: value
+    }));
+  };
+
+  const createGuestUser = async () => {
+    try {
+      const formatPakistaniNumber = (phone) => {
+        const cleaned = phone.replace(/\D/g, '');
+        if (cleaned.length === 11 && cleaned.startsWith('0')) {
+          return `+92${cleaned.substring(1)}`;
+        } else if (cleaned.length === 12 && cleaned.startsWith('92')) {
+          return `+${cleaned}`;
+        }
+        return phone;
+      };
+  
+      let namePhone;
+      let formattedPhone;
+      let phoneValid = false;
+  
+      while (!phoneValid) {
+        const result = await Swal.fire({
+          title: 'Enter your details',
+          html: `
+            <div class="flex flex-col items-center">
+              <input id="swal-input1" class="swal2-input mb-2 w-full" placeholder="Your Name" required>
+              <div class="flex items-center w-full mb-2">
+                <span class="mr-2 text-sm whitespace-nowrap">🇵🇰 +92</span>
+                <input id="swal-input2" class="swal2-input flex-1" placeholder="3XX-XXXXXXX" type="tel" required>
+              </div>
+              <p class="text-xs text-gray-500 mt-2 text-center">
+                Enter your 11-digit Pakistani number (without +92)
+              </p>
+            </div>
+          `,
+          focusConfirm: false,
+          confirmButtonText: 'Submit',
+          preConfirm: () => {
+            const name = document.getElementById('swal-input1').value.trim();
+            const phone = document.getElementById('swal-input2').value.trim();
+  
+            if (!name || !phone) {
+              Swal.showValidationMessage('Please fill out all fields');
+              return false;
+            }
+  
+            return { name, phone };
+          },
+          didOpen: () => {
+            document.getElementById('swal-input1').focus();
+          }
+        });
+  
+        if (!result.value) return null;
+  
+        const cleaned = result.value.phone.replace(/\D/g, '');
+        if (!/^[0-9]{10,11}$/.test(cleaned)) {
+          await Swal.fire({
+            title: 'Invalid Number',
+            text: 'Please enter a valid 11-digit Pakistani number',
+            icon: 'error',
+            confirmButtonText: 'Try Again',
+          });
+          continue;
+        }
+  
+        formattedPhone = formatPakistaniNumber(result.value.phone);
+  
+        if (/^\+92[0-9]{10}$/.test(formattedPhone)) {
+          namePhone = {
+            name: result.value.name,
+            phone: formattedPhone,
+          };
+          phoneValid = true;
+        } else {
+          await Swal.fire({
+            title: 'Invalid Number',
+            text: 'Please enter a valid Pakistani phone number (11 digits starting with 0)',
+            icon: 'error',
+            confirmButtonText: 'Try Again',
+          });
+        }
+      }
+  
+      const otpResponse = await fetch('/api/guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(namePhone),
+      });
+  
+      if (!otpResponse.ok) {
+        const errorData = await otpResponse.json();
+        throw new Error(errorData.message || 'Failed to send OTP');
+      }
+  
+      let otpVerified = false;
+      let otpAttempts = 0;
+      let guestUser = null;
+      let password = null;
+  
+      while (!otpVerified && otpAttempts < 3) {
+        const otpResult = await Swal.fire({
+          title: 'Verify OTP',
+          html: `
+            <p>We've sent an OTP to your WhatsApp number:</p>
+            <p class="font-semibold">🇵🇰 ${namePhone.phone}</p>
+            <input id="swal-input-otp" class="swal2-input mt-4" placeholder="Enter 6-digit OTP" required>
+            ${otpAttempts > 0 ? `<p class="text-red-500 text-sm mt-2">Incorrect OTP. ${3 - otpAttempts} attempts remaining</p>` : ''}
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          cancelButtonText: 'Resend OTP',
+          confirmButtonText: 'Verify',
+          preConfirm: () => {
+            return document.getElementById('swal-input-otp').value;
+          },
+          didOpen: () => {
+            document.getElementById('swal-input-otp').focus();
+          }
+        });
+  
+        if (otpResult.isDismissed && otpResult.dismiss === Swal.DismissReason.cancel) {
+          await fetch('/api/guest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(namePhone),
+          });
+          otpAttempts = 0;
+          continue;
+        }
+  
+        if (!otpResult.value) return null;
+  
+        otpAttempts++;
+  
+        const verifyResponse = await fetch('/api/guest/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: namePhone.phone,
+            otp: otpResult.value,
+            name: namePhone.name,
+          }),
+        });
+  
+        if (verifyResponse.ok) {
+          const verified = await verifyResponse.json();
+          console.log('Verify response:', JSON.stringify(verified, null, 2));
+          guestUser = verified.user;
+          password = verified.password;
+          console.log('guestUser:', guestUser);
+          if (!guestUser?.id || !guestUser?.phone) {
+            console.error('Invalid guest user data:', guestUser);
+            throw new Error('Guest user data missing id or phone');
+          }
+          otpVerified = true;
+        } else if (otpAttempts >= 3) {
+          throw new Error('Too many incorrect OTP attempts');
+        }
+      }
+  
+      if (!otpVerified) return null;
+  
+      const { value: addressInfo } = await Swal.fire({
+        title: 'Delivery Information',
+        html:
+          '<input id="swal-input1" class="swal2-input" placeholder="Delivery Address" required>' +
+          '<input id="swal-input2" class="swal2-input" placeholder="City" required>' +
+          '<input id="swal-input3" class="swal2-input" placeholder="Postal Code" required>',
+        focusConfirm: false,
+        preConfirm: () => {
+          return {
+            address: document.getElementById('swal-input1').value,
+            city: document.getElementById('swal-input2').value,
+            postalCode: document.getElementById('swal-input3').value,
+          };
+        },
+        didOpen: () => {
+          document.getElementById('swal-input1').focus();
+        }
+      });
+  
+      if (addressInfo) {
+        const updatePayload = {
+          guestId: guestUser.id,
+          phone: guestUser.phone || namePhone.phone,
+          address: addressInfo.address,
+          city: addressInfo.city,
+          postalCode: addressInfo.postalCode
+        };
+  
+        console.log('Sending to /api/guest/update:', updatePayload);
+  
+        if (!updatePayload.guestId || !updatePayload.phone || !updatePayload.address || !updatePayload.city || !updatePayload.postalCode) {
+          console.error('Invalid update payload:', updatePayload);
+          throw new Error('Missing required fields for guest update');
+        }
+  
+        const updateResponse = await fetch('/api/guest/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatePayload),
+        });
+  
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.json();
+          console.error('Update API error:', {
+            status: updateResponse.status,
+            message: errorData.message,
+            details: errorData
+          });
+          await Swal.fire({
+            title: 'Error',
+            text: errorData.message || 'Failed to update guest information',
+            icon: 'error',
+            confirmButtonText: 'Try Again'
+          });
+          throw new Error(errorData.message || 'Failed to update guest info');
+        }
+  
+        const { user: updatedGuest } = await updateResponse.json();
+        setUser(updatedGuest);
+  
+        try {
+          const whatsappPayload = {
+            phone: guestUser.phone || namePhone.phone,
+            email: guestUser.email,
+            password: password
+          };
+          console.log('Sending to /api/guest/whatsapp:', whatsappPayload);
+          const whatsappResponse = await fetch('/api/guest/whatsapp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(whatsappPayload),
+          });
+  
+          if (!whatsappResponse.ok) {
+            console.error('Failed to send WhatsApp message:', await whatsappResponse.json());
+          }
+        } catch (whatsappError) {
+          console.error('WhatsApp error:', whatsappError);
+        }
+  
+        await Swal.fire({
+          title: 'Profile Created!',
+          html: `
+            <div class="text-left">
+              <p>Your guest profile has been created successfully!</p>
+              <p class="mt-4"><strong>Email:</strong> ${guestUser.email}</p>
+              <p><strong>Password:</strong> ${password}</p>
+              <div class="bg-green-50 p-3 rounded mt-4">
+                <p class="text-sm text-green-700">
+                  <span class="font-semibold">🇵🇰 WhatsApp confirmation sent to ${guestUser.phone || namePhone.phone}</span>
+                </p>
+                <p class="text-xs text-green-600 mt-1">
+                  Please save these credentials to track your orders later.
+                </p>
+              </div>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonText: 'Continue Shopping',
+        });
+  
+        return guestUser;
+      }
+  
+      return null;
+  
+    } catch (error) {
+      console.error('Guest creation error:', error);
+      await Swal.fire({
+        title: 'Error',
+        html: `
+          <p>${error.message || 'Failed to create guest profile'}</p>
+          <p class="text-sm text-gray-500 mt-2">Please try again with a valid Pakistani number</p>
+        `,
+        icon: 'error'
+      });
+      return null;
+    }
+  };
+  
+  const addToCart = async (box) => {
+    let currentUser = user;
+    
+    if (!currentUser) {
+      const result = await Swal.fire({
+        title: 'Not Logged In',
+        text: 'You need to login to add items to cart. Do you want to login or continue as guest?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Login',
+        cancelButtonText: 'Continue as Guest',
+        reverseButtons: true
+      });
+  
+      if (result.isConfirmed) {
+        router.push('/login');
+        return;
+      } else {
+        const guestUser = await createGuestUser();
+        if (!guestUser) {
+          Swal.fire('Error', 'Failed to create guest session', 'error');
+          return;
+        }
+        currentUser = guestUser;
+        setUser(guestUser); // Ensure user state is updated
+      }
+    }
+  
+    try {
+      const response = await fetch('/api/auth/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          boxId: box.id,
+          quantity: quantities[box.id] || 1,
+          frequency: frequencies[box.id] || box.deliveryfrequency,
+          price: box.price
+        })
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add to cart');
+      }
+  
+      Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Added to cart!',
+        showConfirmButton: false,
+        timer: 1500
+      });
+    } catch (error) {
+      console.error('Add to cart error:', error);
+      Swal.fire('Error', error.message || 'Failed to add item to cart', 'error');
+    }
   };
 
   if (loading) {
@@ -116,7 +499,7 @@ export default function FarmBoxGrid() {
                   fill
                   className="object-cover hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  priority={index < 4}  // Prioritize above-the-fold images
+                  priority={index < 4}
                 />
                 <button
                   className="absolute top-3 right-3 bg-green-600 text-white cursor-pointer text-xs px-3 py-1 rounded shadow hover:bg-green-700 transition z-10"
@@ -151,7 +534,11 @@ export default function FarmBoxGrid() {
                     </label>
                     <select 
                       className="border border-gray-500 rounded-md text-gray-500 px-3 py-2 w-full"
-                      onClick={(e) => e.stopPropagation()}
+                      value={quantities[box.id] || 1}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleQuantityChange(box.id, e.target.value);
+                      }}
                     >
                       {[...Array(box.maxquantity).keys()].map(num => (
                         <option key={num+1} value={num+1}>{num+1}</option>
@@ -164,10 +551,15 @@ export default function FarmBoxGrid() {
                     </label>
                     <select 
                       className="border border-gray-500 rounded-md text-gray-500 px-3 py-2 w-full"
-                      onClick={(e) => e.stopPropagation()}
+                      value={frequencies[box.id] || box.deliveryfrequency}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleFrequencyChange(box.id, e.target.value);
+                      }}
                     >
-                      <option>{box.deliveryfrequency}</option>
-                      <option>Every Month</option>
+                      <option value="Weekly">Weekly</option>
+                      <option value="Bi-Weekly">Bi-Weekly</option>
+                      <option value="Monthly">Monthly</option>
                     </select>
                   </div>
                 </div>
@@ -175,7 +567,7 @@ export default function FarmBoxGrid() {
                   className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Add to cart logic here
+                    addToCart(box);
                   }}
                 >
                   🛒 ADD TO CART
@@ -186,18 +578,17 @@ export default function FarmBoxGrid() {
         </div>
       </div>
 
-      {/* Product Details Modal */}
       {selectedBox && (
-        <div className="fixed inset-0 z-10001 flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center  justify-center">
           <div 
-            className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 relative border border-gray-200"
+            className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 cursor-pointer"
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 cursor-pointer text-2xl"
               onClick={() => setSelectedBox(null)}
             >
-              ✕
+              &times;
             </button>
             <h2 className="text-2xl font-semibold text-green-700 mb-4">
               BOX CONTENTS FOR "{selectedBox.title.toUpperCase()}"
