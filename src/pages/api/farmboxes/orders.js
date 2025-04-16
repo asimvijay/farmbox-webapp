@@ -2,6 +2,9 @@ import sql from './db';
 
 export default async function handler(req, res) {
   try {
+
+
+    // Now run your main query
     const orders = await sql`
       SELECT 
         o.id,
@@ -19,20 +22,28 @@ export default async function handler(req, res) {
       LIMIT 10
     `;
 
-    // Get order items for each order
     const ordersWithItems = await Promise.all(
       orders.map(async (order) => {
         const items = await sql`
           SELECT 
-            product_name, 
-            quantity, 
-            price
-          FROM order_items
-          WHERE order_id = ${order.id}
+            f.id as farmbox_id,
+            f.name as farmbox_name,
+            oi.quantity, 
+            oi.price
+          FROM order_items oi
+          JOIN farmboxes f ON oi.farmbox_id = f.id
+          WHERE oi.order_id = ${order.id}
         `;
         return {
           ...order,
-          items,
+          order_items: items.map(item => ({
+            product: {
+              id: item.farmbox_id,
+              name: item.farmbox_name
+            },
+            quantity: item.quantity,
+            price: item.price
+          })),
           customer: {
             id: order.customer_id,
             name: order.customer_name,

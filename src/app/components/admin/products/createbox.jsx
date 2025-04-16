@@ -1,3 +1,4 @@
+// File: src/app/components/admin/products/createbox.jsx
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -34,9 +35,33 @@ const CreateFarmBox = ({ onBack }) => {
     { name: "Mixed Vegetables, Fruits and More Box", category: "mixed", image: Farmbox1.src }
   ];
 
-  // Fetch products and existing farmboxes
+  // Fetch farmboxes before other data
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFarmBoxes = async () => {
+      try {
+        const boxesResponse = await fetch('/api/farmboxes?nocache=' + Date.now());
+        if (!boxesResponse.ok) {
+          throw new Error(`Failed to fetch farmboxes: ${boxesResponse.status}`);
+        }
+        const boxesData = await boxesResponse.json()
+        setAllFarmBoxes(Array.isArray(boxesData) ? boxesData : []);
+      } catch (boxError) {
+        console.error('Error fetching farmboxes:', boxError.message);
+        setError('Failed to load farmboxes. Please try again.');
+        setAllFarmBoxes([]);
+      }
+    };
+    fetchFarmBoxes();
+  }, []);
+
+  // Log allFarmBoxes and availableFeaturedBoxes for debugging
+  useEffect(() => {
+
+  }, [allFarmBoxes]);
+
+  // Fetch products after farmboxes
+  useEffect(() => {
+    const fetchProducts = async () => {
       try {
         setIsLoading(true);
         const productsResponse = await fetch('/api/farmboxes/products?nocache=' + Date.now());
@@ -45,28 +70,12 @@ const CreateFarmBox = ({ onBack }) => {
         }
 
         const productsData = await productsResponse.json();
-        console.log('Products data:', productsData);
+  
         setAllProducts(productsData);
 
         const filtered = productsData.filter(p => p.category.toLowerCase() === 'vegetables');
-        console.log('Filtered products:', filtered);
+  
         setFilteredProducts(filtered);
-
-        // Fetch farmboxes using the correct endpoint
-        try {
-          const boxesResponse = await fetch('/api/farmboxes/index?nocache=' + Date.now());
-          if (boxesResponse.ok) {
-            const boxesData = await boxesResponse.json();
-            console.log('Farmboxes data:', boxesData);
-            setAllFarmBoxes(boxesData);
-          } else {
-            console.warn('Farmboxes fetch failed:', boxesResponse.status);
-            setAllFarmBoxes([]);
-          }
-        } catch (boxError) {
-          console.warn('Error fetching farmboxes:', boxError.message);
-          setAllFarmBoxes([]);
-        }
       } catch (err) {
         console.error('Fetch error:', err);
         setError(err.message);
@@ -74,8 +83,10 @@ const CreateFarmBox = ({ onBack }) => {
         setIsLoading(false);
       }
     };
-    fetchData();
-  }, []);
+    if (allFarmBoxes !== null) {
+      fetchProducts();
+    }
+  }, [allFarmBoxes]);
 
   // Update image preview
   useEffect(() => {
@@ -108,13 +119,20 @@ const CreateFarmBox = ({ onBack }) => {
 
   // Check for existing featured box
   const checkExistingBox = useCallback((boxName) => {
-    const existing = allFarmBoxes.find(box => box.name === boxName && box.isFeatured);
+    const existing = allFarmBoxes.find(box => box.name === boxName && box.isfeatured);
     if (existing) {
       setExistingBox(existing);
       return true;
     }
     setExistingBox(null);
     return false;
+  }, [allFarmBoxes]);
+
+  // Filter available featured box options
+  const availableFeaturedBoxes = useMemo(() => {
+    return featuredBoxes.filter(
+      box => !allFarmBoxes.some(farmBox => farmBox.name === box.name && farmBox.isfeatured)
+    );
   }, [allFarmBoxes]);
 
   // Filter products and handle featured box logic
@@ -128,7 +146,7 @@ const CreateFarmBox = ({ onBack }) => {
         filtered = selectedBox.category === 'mixed'
           ? allProducts.filter(p => ['Fruits', 'Vegetables'].includes(p.category))
           : allProducts.filter(p => p.category === selectedBox.category);
-        console.log(`Featured box filter (${selectedBox.name}):`, filtered);
+      
 
         const boxExists = checkExistingBox(formData.name);
 
@@ -181,7 +199,7 @@ const CreateFarmBox = ({ onBack }) => {
       }
     } else {
       filtered = allProducts.filter(p => p.category.toLowerCase() === formData.category.toLowerCase());
-      console.log(`Custom box filter (category: ${formData.category}):`, filtered);
+   
     }
 
     setFilteredProducts(filtered);
@@ -342,7 +360,7 @@ const CreateFarmBox = ({ onBack }) => {
       const response = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, isfeatured: formData.isFeatured })
       });
 
       if (!response.ok) {
@@ -440,17 +458,20 @@ const CreateFarmBox = ({ onBack }) => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 text-gray-500 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
                     required
                     aria-required="true"
                   >
                     <option value="">Select a featured box</option>
-                    {featuredBoxes.map((box, index) => (
+                    {availableFeaturedBoxes.map((box, index) => (
                       <option key={index} value={box.name}>{box.name}</option>
                     ))}
                   </select>
                   <p className="mt-1 text-sm text-gray-500">
-                    Note: Creating a featured box will update stock and replace any existing box with the same name.
+                    Note: Only available featured boxes are shown. Existing featured boxes are excluded.
+                    {availableFeaturedBoxes.length === 0 && (
+                      <span className="text-red-500"> All featured boxes are currently in use.</span>
+                    )}
                   </p>
                 </div>
               ) : (
@@ -485,7 +506,7 @@ const CreateFarmBox = ({ onBack }) => {
                 type="number"
                 name="price"
                 value={formData.price}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 bg-gray-100"
+                className="mt-1 w-full px-3 py-2 border border-gray-300 text-gray-600 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 bg-gray-100"
                 readOnly
                 aria-readonly="true"
               />
@@ -503,7 +524,7 @@ const CreateFarmBox = ({ onBack }) => {
                   value={formData.image}
                   onChange={handleChange}
                   placeholder="https://example.com/image.jpg"
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-gray-500 shadow-sm focus:ring-green-500 focus:border-green-500"
                 />
               </label>
             )}
@@ -526,7 +547,7 @@ const CreateFarmBox = ({ onBack }) => {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-gray-500 shadow-sm focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="Vegetables">Vegetables</option>
                   <option value="Fruits">Fruits</option>
@@ -542,7 +563,7 @@ const CreateFarmBox = ({ onBack }) => {
                 name="deliveryFrequency"
                 value={formData.deliveryFrequency}
                 onChange={handleChange}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                className="mt-1 w-full px-3 py-2 border text-gray-500 border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
               >
                 <option value="weekly">Weekly</option>
                 <option value="biweekly">Bi-weekly</option>
@@ -570,13 +591,11 @@ const CreateFarmBox = ({ onBack }) => {
             </div>
           )}
 
-          {console.log('Rendering filteredProducts:', filteredProducts)}
           {filteredProducts.length === 0 ? (
             <p className="text-gray-500">No products available in this category.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredProducts.map(product => {
-                console.log('Rendering product:', product.name);
                 const isSelected = formData.boxType === 'featured' ||
                   formData.products.some(p => p.productId === product.id);
                 const selectedProduct = formData.products.find(p => p.productId === product.id);
@@ -601,7 +620,7 @@ const CreateFarmBox = ({ onBack }) => {
                         )}
                         <div>
                           <p className="font-medium text-gray-700">{product.name}</p>
-                          <p className="text-sm text-gray-500">Rs. {product.price}/kg</p>
+                          <p className="text-sm text-gray-600">Rs. {product.price}/kg</p>
                           <span className="text-sm text-gray-600">
                             {isOutOfStock ? (
                               <span className="text-red-500 font-semibold">Out of stock</span>
@@ -680,7 +699,7 @@ const CreateFarmBox = ({ onBack }) => {
               </li>
               <li className="flex justify-between text-gray-700 font-semibold pt-2">
                 <span>Total</span>
-                <span>Rs. {formData.price}</span>
+                <span className='text-gray-600'>Rs. {formData.price}</span>
               </li>
             </ul>
           </div>

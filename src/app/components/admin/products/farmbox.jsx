@@ -1,26 +1,35 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Farmbox1 from '@/public/Farmbox1.jpg';
+import EditableFarmBox from './editbox';
 
 const FarmBoxesManager = () => {
   const [farmboxes, setFarmboxes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const router = useRouter();
+  const [editingBoxId, setEditingBoxId] = useState(null);
+  const [availableProducts, setAvailableProducts] = useState([]);
 
   useEffect(() => {
-    const fetchFarmboxes = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/farmboxes');
-        if (!response.ok) throw new Error('Failed to fetch farmboxes');
-        const data = await response.json();
-        const parsedData = data.map(box => ({
+        // Fetch farmboxes
+        const farmboxesResponse = await fetch('/api/farmboxes');
+        if (!farmboxesResponse.ok) throw new Error('Failed to fetch farmboxes');
+        const farmboxesData = await farmboxesResponse.json();
+        const parsedFarmboxes = farmboxesData.map(box => ({
           ...box,
           products: JSON.parse(box.products)
         }));
-        setFarmboxes(parsedData);
+        setFarmboxes(parsedFarmboxes);
+
+        // Fetch available products
+        const productsResponse = await fetch('/api/farmboxes/products');
+        if (!productsResponse.ok) throw new Error('Failed to fetch products');
+        const productsData = await productsResponse.json();
+        setAvailableProducts(productsData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -28,11 +37,57 @@ const FarmBoxesManager = () => {
       }
     };
 
-    fetchFarmboxes();
+    fetchData();
   }, []);
 
   const handleEdit = (boxId) => {
-    router.push(`/edit-farmbox/${boxId}`);
+    setEditingBoxId(boxId);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBoxId(null);
+  };
+
+  const handleSaveEdit = async (boxId, updatedBox) => {
+    try {
+      const originalBox = farmboxes.find(box => box.id === boxId);
+      const quantityDiff = originalBox.maxQuantity - updatedBox.maxQuantity;
+
+      if (quantityDiff > 0) {
+        // Return stock to products
+        for (const product of originalBox.products) {
+          await fetch('/api/products/update-stock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: product.id,
+              quantity: product.quantity * quantityDiff
+            })
+          });
+        }
+      }
+
+      const response = await fetch(`/api/farmboxes/update?id=${boxId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...updatedBox,
+          products: updatedBox.products
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to update farmbox');
+
+      const updatedData = await response.json();
+      setFarmboxes(prev => prev.map(box => 
+        box.id === boxId ? { ...updatedData, products: JSON.parse(updatedData.products) } : box
+      ));
+      setEditingBoxId(null);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const handleDelete = async (boxId) => {
@@ -96,85 +151,108 @@ const FarmBoxesManager = () => {
           farmboxes.map((box) => (
             <div 
               key={box.id} 
-              className="group relative bg-white rounded-xl  shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 overflow-hidden"
+              className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 overflow-hidden"
             >
-              {/* Action Buttons */}
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                <button 
-                  onClick={() => handleEdit(box.id)}
-                  className="p-2 bg-white/90 backdrop-blur-sm cursor-pointer rounded-lg shadow-sm hover:bg-green-50 transition-colors duration-200"
-                  aria-label="Edit farm box"
-                >
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                </button>
-                <button 
-                  onClick={() => handleDelete(box.id)}
-                  className="p-2 bg-white/90 backdrop-blur-sm rounded-lg cursor-pointer shadow-sm hover:bg-red-50 transition-colors duration-200"
-                  aria-label="Delete farm box"
-                >
-                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Category Badge */}
-              <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-full">
-                {box.category}
-              </div>
-
-              {/* Image Section */}
-              {box.image && (
-                <div className="h-56 overflow-hidden">
-                  <img 
-                    src={Farmbox1.src} 
-                    alt={box.name} 
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-              )}
-
-              {/* Card Content */}
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="text-lg font-bold text-gray-800 truncate">{box.name}</h4>
-                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md text-sm font-semibold">
-                    ${parseFloat(box.price).toFixed(2)}
-                  </span>
-                </div>
-                
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{box.description}</p>
-                
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <svg className="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                      <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
+              <>
+                {/* Action Buttons */}
+                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                  <button 
+                    onClick={() => handleEdit(box.id)}
+                    className="p-2 bg-white/90 backdrop-blur-sm cursor-pointer rounded-lg shadow-sm hover:bg-green-50 transition-colors duration-200"
+                    aria-label="Edit farm box"
+                  >
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
-                    {box.deliveryfrequency}
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <svg className="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(box.id)}
+                    className="p-2 bg-white/90 backdrop-blur-sm rounded-lg cursor-pointer shadow-sm hover:bg-red-50 transition-colors duration-200"
+                    aria-label="Delete farm box"
+                  >
+                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    Max {box.maxquantity}
-                  </div>
+                  </button>
                 </div>
 
-                <div className="border-t pt-4">
-                  <h5 className="text-sm font-semibold text-gray-700 mb-2">Includes:</h5>
-                  <div className="space-y-2">
-                    {box.products.map((product, index) => (
-                      <div key={index} className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">{product.name}</span>
-                        <span className="text-green-600 font-medium">{product.quantity}kg</span>
-                      </div>
-                    ))}
+                {/* Featured Badge */}
+                {box.isfeatured && (
+                  <div 
+                    className="absolute top-2 left-2 bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 transition-transform duration-200 group-hover:scale-105 z-10"
+                    aria-label="Featured box"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Featured
+                  </div>
+                )}
+
+                {/* Custom Box Badge */}
+                {!box.isfeatured && (
+                  <div 
+                    className="absolute top-2 left-2 bg-orange-500 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 transition-transform duration-200 group-hover:scale-105 z-10"
+                    aria-label="Custom box"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    Custom Box
+                  </div>
+                )}
+
+                {/* Image Section */}
+                {box.image && (
+                  <div className="h-56 overflow-hidden">
+                    <img 
+                      src={Farmbox1.src} 
+                      alt={box.name} 
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                )}
+
+                {/* Card Content */}
+                <div className="p-5">
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="text-lg font-bold text-gray-800 truncate">{box.name}</h4>
+                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md text-sm font-semibold">
+                      ${parseFloat(box.price).toFixed(2)}
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{box.description}</p>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2 2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
+                      </svg>
+                      {box.deliveryfrequency}
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                      </svg>
+                      Max {box.maxquantity}
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h5 className="text-sm font-semibold text-gray-700 mb-2">Includes:</h5>
+                    <div className="h-[12vh] overflow-y-scroll scrollbar-hide">
+                      {box.products.map((product, index) => (
+                        <div key={index} className="flex justify-between items-center text-sm py-1">
+                          <span className="text-gray-600">{product.name}</span>
+                          <span className="text-green-600 font-medium">{product.quantity}kg</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </>
             </div>
           ))
         ) : (
@@ -189,6 +267,15 @@ const FarmBoxesManager = () => {
           </div>
         )}
       </div>
+
+      {editingBoxId && (
+        <EditableFarmBox
+          box={farmboxes.find(box => box.id === editingBoxId)}
+          availableProducts={availableProducts}
+          onSave={handleSaveEdit}
+          onCancel={handleCancelEdit}
+        />
+      )}
     </div>
   );
 };

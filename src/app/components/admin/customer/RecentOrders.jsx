@@ -31,7 +31,7 @@ const OrdersList = () => {
   }, []);
 
   const filteredOrders = orders.filter(order =>
-    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
     (order.customer && order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 

@@ -1,7 +1,7 @@
 // app/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import heroImage from '../../assets/images/hero.webp';
 import boxImage from '@/public/Farmbox1.jpg';
@@ -10,6 +10,21 @@ import { FaArrowRight, FaCalendar, FaLeaf, FaTruck } from 'react-icons/fa';
 
 export default function LandingPage() {
   const [email, setEmail] = useState('');
+
+  // Add database initialization effect
+  useEffect(() => {
+    const initializeDatabase = async () => {
+      try {
+        const response = await fetch('/api/auth/dbschema');
+        const data = await response.json();
+        console.log('Database initialized:', data);
+      } catch (error) {
+        console.error('Database initialization failed:', error);
+      }
+    };
+
+    initializeDatabase();
+  }, []);
 
   const features = [
     {

@@ -1,4 +1,4 @@
-import FarmBoxGrid from "../components/langingpage/page";
+import FarmBoxGrid from "../components/farmbox/page";
 
 const Farm =()=>{
  return <FarmBoxGrid/>;
