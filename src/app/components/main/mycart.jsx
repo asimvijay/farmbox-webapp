@@ -93,7 +93,7 @@ const MyCart = ({ cart, onClose, onCheckout }) => {
                   >
                     Proceed to Checkout
                   </button>
-                  <Link href="/products">
+                  <Link href="/farmboxes">
                     <button
                       onClick={onClose}
                       className="w-full py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
@@ -114,7 +114,7 @@ const MyCart = ({ cart, onClose, onCheckout }) => {
               <h3 className="mt-2 text-lg font-medium text-gray-900">Your cart is empty</h3>
               <p className="mt-1 text-gray-500">Add some items to your cart to get started.</p>
               <div className="mt-6">
-                <Link href="/products">
+                <Link href="/farmboxes">
                   <button
                     onClick={onClose}
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
