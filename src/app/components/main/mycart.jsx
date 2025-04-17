@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import Farmbox1 from "@/public/Farmbox1.jpg"; // Adjust the path as necessary
 
 const MyCart = ({ cart, onClose, onCheckout }) => {
   const router = useRouter();
@@ -54,7 +55,7 @@ const MyCart = ({ cart, onClose, onCheckout }) => {
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
                       <Image 
-                        src="/product-placeholder.png" 
+                        src={Farmbox1.src}
                         alt={item.product.name}
                         width={48}
                         height={48}
