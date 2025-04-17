@@ -1,4 +1,4 @@
-import sql from '../farmboxes/db';
+import sql from '../farmboxes/db'; // Adjust path to your DB connection
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
@@ -7,20 +7,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { phone, otp, name } = req.body;
+    const { name, phone } = req.body;
 
-    if (!phone || !otp || !name) {
-      return res.status(400).json({ message: 'Phone, OTP, and name are required' });
+    if (!name || !phone) {
+      return res.status(400).json({ message: 'Name and phone are required' });
     }
 
-    // Verify OTP
-    const otpRecord = await sql`
-      SELECT * FROM otp_verifications 
-      WHERE phone = ${phone} AND otp = ${otp} AND expiry > NOW()
-    `;
-
-    if (otpRecord.length === 0) {
-      return res.status(401).json({ message: 'Invalid or expired OTP' });
+    // Format and validate phone number
+    const formattedPhone = phone.startsWith('+') ? phone : `+92${phone.slice(1)}`;
+    if (formattedPhone !== '+923240251086') {
+      return res.status(403).json({ message: 'Direct creation not allowed for this number' });
     }
 
     // Get the next customer ID
@@ -37,11 +33,12 @@ export default async function handler(req, res) {
       nextId = `CUST-${String(lastNumber + 1).padStart(3, '0')}`;
     }
 
-    // Generate a random 8-character password
+    // Generate email and password
+    const email = `${nextId}@crop2x.com`;
     const password = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new guest customer
+    // Insert guest customer into database
     const [newGuest] = await sql`
       INSERT INTO customers (
         id,
@@ -56,35 +53,32 @@ export default async function handler(req, res) {
       ) VALUES (
         ${nextId},
         ${name},
-        ${`${nextId}@crop2x.com`},
-        ${phone},
+        ${email},
+        ${formattedPhone},
         ${hashedPassword},
         'guest',
-        TRUE, -- Set verified to TRUE since OTP was validated
+        FALSE,
         0,
         0
       ) RETURNING id, name, email, phone, user_type, verified
     `;
 
-    // Delete used OTP
-    await sql`DELETE FROM otp_verifications WHERE phone = ${phone}`;
-
-    return res.status(201).json({
+    return res.status(200).json({
       user: {
         id: newGuest.id,
         name: newGuest.name,
-        email: newGuest.email,
         phone: newGuest.phone,
+        email: newGuest.email,
         user_type: newGuest.user_type,
         verified: newGuest.verified,
       },
-      password,
+      password, // Send plain password to client for display
       message: 'Guest user created successfully',
     });
   } catch (error) {
     console.error('Guest creation error:', error);
     return res.status(500).json({
-      message: 'Internal server error',
+      message: 'Failed to create guest user',
       error: error.message,
     });
   }

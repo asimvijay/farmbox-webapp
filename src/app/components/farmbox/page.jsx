@@ -152,7 +152,7 @@ export default function FarmBoxGrid() {
           },
           didOpen: () => {
             document.getElementById('swal-input1').focus();
-          }
+          },
         });
   
         if (!result.value) return null;
@@ -186,6 +186,34 @@ export default function FarmBoxGrid() {
         }
       }
   
+      // Check if the phone number is +923240251086
+      if (namePhone.phone !== '+923240251086') {
+        await Swal.fire({
+          title: 'Feature Coming Soon',
+          html: `
+            <div class="text-center">
+              <p class="text-lg text-gray-700 mb-4">
+                This verification method will be available in future updates!
+              </p>
+              <p class="text-sm text-gray-500">
+                Please continue to login with your existing account
+              </p>
+            </div>
+          `,
+          icon: 'info',
+          confirmButtonText: 'Continue to Login',
+          showCancelButton: true,
+          cancelButtonText: 'Cancel',
+          focusConfirm: false,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            router.push('/login');
+          }
+        });
+        return null; // Exit without triggering catch block
+      }
+  
+      // Proceed with OTP verification for +923240251086
       const otpResponse = await fetch('/api/guest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -209,7 +237,13 @@ export default function FarmBoxGrid() {
             <p>We've sent an OTP to your WhatsApp number:</p>
             <p class="font-semibold">🇵🇰 ${namePhone.phone}</p>
             <input id="swal-input-otp" class="swal2-input mt-4" placeholder="Enter 6-digit OTP" required>
-            ${otpAttempts > 0 ? `<p class="text-red-500 text-sm mt-2">Incorrect OTP. ${3 - otpAttempts} attempts remaining</p>` : ''}
+            ${
+              otpAttempts > 0
+                ? `<p class="text-red-500 text-sm mt-2">Incorrect OTP. ${
+                    3 - otpAttempts
+                  } attempts remaining</p>`
+                : ''
+            }
           `,
           focusConfirm: false,
           showCancelButton: true,
@@ -220,10 +254,13 @@ export default function FarmBoxGrid() {
           },
           didOpen: () => {
             document.getElementById('swal-input-otp').focus();
-          }
+          },
         });
   
-        if (otpResult.isDismissed && otpResult.dismiss === Swal.DismissReason.cancel) {
+        if (
+          otpResult.isDismissed &&
+          otpResult.dismiss === Swal.DismissReason.cancel
+        ) {
           await fetch('/api/guest', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -252,7 +289,6 @@ export default function FarmBoxGrid() {
           guestUser = verified.user;
           password = verified.password;
           if (!guestUser?.id || !guestUser?.phone) {
-            console.error('Invalid guest user data:', guestUser);
             throw new Error('Guest user data missing id or phone');
           }
           otpVerified = true;
@@ -268,18 +304,22 @@ export default function FarmBoxGrid() {
         html:
           '<input id="swal-input1" class="swal2-input" placeholder="Delivery Address" required>' +
           '<input id="swal-input2" class="swal2-input" placeholder="City" required>' +
-          '<input id="swal-input3" class="swal2-input" placeholder="Postal Code" required>',
+          '<input id="swal-input3" class="swal2-input" placeholder="Postal Code" required>' +
+          '<input id="swal-input4" class="swal2-input" placeholder="Area (Optional)">' +
+          '<input id="swal-input5" class="swal2-input" placeholder="Country" value="Pakistan" required>',
         focusConfirm: false,
         preConfirm: () => {
           return {
             address: document.getElementById('swal-input1').value,
             city: document.getElementById('swal-input2').value,
             postalCode: document.getElementById('swal-input3').value,
+            area: document.getElementById('swal-input4').value || null,
+            country: document.getElementById('swal-input5').value,
           };
         },
         didOpen: () => {
           document.getElementById('swal-input1').focus();
-        }
+        },
       });
   
       if (addressInfo) {
@@ -288,7 +328,9 @@ export default function FarmBoxGrid() {
           phone: guestUser.phone || namePhone.phone,
           address: addressInfo.address,
           city: addressInfo.city,
-          postalCode: addressInfo.postalCode
+          postalCode: addressInfo.postalCode,
+          country: addressInfo.country,
+          area: addressInfo.area,
         };
   
         const updateResponse = await fetch('/api/guest/update', {
@@ -303,7 +345,7 @@ export default function FarmBoxGrid() {
             title: 'Error',
             text: errorData.message || 'Failed to update guest information',
             icon: 'error',
-            confirmButtonText: 'Try Again'
+            confirmButtonText: 'Try Again',
           });
           throw new Error(errorData.message || 'Failed to update guest info');
         }
@@ -314,7 +356,7 @@ export default function FarmBoxGrid() {
           const whatsappPayload = {
             phone: guestUser.phone || namePhone.phone,
             email: guestUser.email,
-            password: password
+            password: password,
           };
           const whatsappResponse = await fetch('/api/guest/whatsapp', {
             method: 'POST',
@@ -323,7 +365,10 @@ export default function FarmBoxGrid() {
           });
   
           if (!whatsappResponse.ok) {
-            console.error('Failed to send WhatsApp message:', await whatsappResponse.json());
+            console.error(
+              'Failed to send WhatsApp message:',
+              await whatsappResponse.json()
+            );
           }
         } catch (whatsappError) {
           console.error('WhatsApp error:', whatsappError);
@@ -338,7 +383,9 @@ export default function FarmBoxGrid() {
               <p><strong>Password:</strong> ${password}</p>
               <div class="bg-green-50 p-3 rounded mt-4">
                 <p class="text-sm text-green-700">
-                  <span class="font-semibold">🇵🇰 WhatsApp confirmation sent to ${guestUser.phone || namePhone.phone}</span>
+                  <span class="font-semibold">🇵🇰 WhatsApp confirmation sent to ${
+                    guestUser.phone || namePhone.phone
+                  }</span>
                 </p>
                 <p class="text-xs text-green-600 mt-1">
                   Please save these credentials to track your orders later.
@@ -349,8 +396,7 @@ export default function FarmBoxGrid() {
           icon: 'success',
           confirmButtonText: 'Continue Shopping',
         });
-
-        // Automatically log in the guest user
+  
         try {
           const loggedInUser = await loginGuestUser(guestUser.email, password);
           setUser(loggedInUser);
@@ -358,13 +404,11 @@ export default function FarmBoxGrid() {
           return loggedInUser;
         } catch (loginError) {
           console.error('Auto-login failed:', loginError);
-          // Return guest user even if auto-login fails
           return guestUser;
         }
       }
   
       return null;
-  
     } catch (error) {
       console.error('Guest creation error:', error);
       await Swal.fire({
@@ -373,7 +417,7 @@ export default function FarmBoxGrid() {
           <p>${error.message || 'Failed to create guest profile'}</p>
           <p class="text-sm text-gray-500 mt-2">Please try again with a valid Pakistani number</p>
         `,
-        icon: 'error'
+        icon: 'error',
       });
       return null;
     }
@@ -399,7 +443,7 @@ export default function FarmBoxGrid() {
       } else {
         currentUser = await createGuestUser();
         if (!currentUser) {
-          Swal.fire('Error', 'Failed to create guest session', 'error');
+          // Do not show error alert if createGuestUser returns null (e.g., non-03240251086 number)
           return;
         }
         // User state is already updated by createGuestUser
@@ -606,7 +650,7 @@ export default function FarmBoxGrid() {
               className="absolute top-4 right-4 text-gray-500 hover:text-red-500 cursor-pointer text-2xl"
               onClick={() => setSelectedBox(null)}
             >
-              &times;
+              ×
             </button>
             <h2 className="text-2xl font-semibold text-green-700 mb-4">
               BOX CONTENTS FOR "{selectedBox.title.toUpperCase()}"
