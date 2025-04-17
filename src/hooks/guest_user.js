@@ -429,7 +429,7 @@ export const addToCart = async (user, box, quantities, frequencies, router) => {
     }
 
     Swal.fire({
-      position: 'top-end',
+      position: 'center',
       icon: 'success',
       title: 'Added to cart!',
       showConfirmButton: false,
