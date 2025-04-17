@@ -139,6 +139,7 @@ export default function FarmBoxGrid() {
           `,
           focusConfirm: false,
           confirmButtonText: 'Submit',
+          showCloseButton: true,
           preConfirm: () => {
             const name = document.getElementById('swal-input1').value.trim();
             const phone = document.getElementById('swal-input2').value.trim();
@@ -155,16 +156,23 @@ export default function FarmBoxGrid() {
           },
         });
   
+        if (result.isDismissed && result.dismiss === Swal.DismissReason.close) {
+          return null;
+        }
         if (!result.value) return null;
   
         const cleaned = result.value.phone.replace(/\D/g, '');
         if (!/^[0-9]{10,11}$/.test(cleaned)) {
-          await Swal.fire({
+          const errorResult = await Swal.fire({
             title: 'Invalid Number',
             text: 'Please enter a valid 11-digit Pakistani number',
             icon: 'error',
             confirmButtonText: 'Try Again',
+            showCloseButton: true,
           });
+          if (errorResult.isDismissed && errorResult.dismiss === Swal.DismissReason.close) {
+            return null;
+          }
           continue;
         }
   
@@ -177,18 +185,22 @@ export default function FarmBoxGrid() {
           };
           phoneValid = true;
         } else {
-          await Swal.fire({
+          const errorResult = await Swal.fire({
             title: 'Invalid Number',
             text: 'Please enter a valid Pakistani phone number (11 digits starting with 0)',
             icon: 'error',
             confirmButtonText: 'Try Again',
+            showCloseButton: true,
           });
+          if (errorResult.isDismissed && errorResult.dismiss === Swal.DismissReason.close) {
+            return null;
+          }
         }
       }
   
       // Check if the phone number is +923240251086
       if (namePhone.phone !== '+923240251086') {
-        await Swal.fire({
+        const featureResult = await Swal.fire({
           title: 'Feature Coming Soon',
           html: `
             <div class="text-center">
@@ -204,13 +216,16 @@ export default function FarmBoxGrid() {
           confirmButtonText: 'Continue to Login',
           showCancelButton: true,
           cancelButtonText: 'Cancel',
+          showCloseButton: true,
           focusConfirm: false,
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/login');
-          }
         });
-        return null; // Exit without triggering catch block
+        if (featureResult.isDismissed && featureResult.dismiss === Swal.DismissReason.close) {
+          return null;
+        }
+        if (featureResult.isConfirmed) {
+          router.push('/login');
+        }
+        return null;
       }
   
       // Proceed with OTP verification for +923240251086
@@ -249,6 +264,7 @@ export default function FarmBoxGrid() {
           showCancelButton: true,
           cancelButtonText: 'Resend OTP',
           confirmButtonText: 'Verify',
+          showCloseButton: true,
           preConfirm: () => {
             return document.getElementById('swal-input-otp').value;
           },
@@ -257,6 +273,9 @@ export default function FarmBoxGrid() {
           },
         });
   
+        if (otpResult.isDismissed && otpResult.dismiss === Swal.DismissReason.close) {
+          return null;
+        }
         if (
           otpResult.isDismissed &&
           otpResult.dismiss === Swal.DismissReason.cancel
@@ -299,7 +318,7 @@ export default function FarmBoxGrid() {
   
       if (!otpVerified) return null;
   
-      const { value: addressInfo } = await Swal.fire({
+      const addressResult = await Swal.fire({
         title: 'Delivery Information',
         html:
           '<input id="swal-input1" class="swal2-input" placeholder="Delivery Address" required>' +
@@ -308,6 +327,7 @@ export default function FarmBoxGrid() {
           '<input id="swal-input4" class="swal2-input" placeholder="Area (Optional)">' +
           '<input id="swal-input5" class="swal2-input" placeholder="Country" value="Pakistan" required>',
         focusConfirm: false,
+        showCloseButton: true,
         preConfirm: () => {
           return {
             address: document.getElementById('swal-input1').value,
@@ -322,103 +342,118 @@ export default function FarmBoxGrid() {
         },
       });
   
-      if (addressInfo) {
-        const updatePayload = {
-          guestId: guestUser.id,
-          phone: guestUser.phone || namePhone.phone,
-          address: addressInfo.address,
-          city: addressInfo.city,
-          postalCode: addressInfo.postalCode,
-          country: addressInfo.country,
-          area: addressInfo.area,
-        };
+      if (addressResult.isDismissed && addressResult.dismiss === Swal.DismissReason.close) {
+        return null;
+      }
+      if (!addressResult.value) return null;
   
-        const updateResponse = await fetch('/api/guest/update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatePayload),
+      const addressInfo = addressResult.value;
+      const updatePayload = {
+        guestId: guestUser.id,
+        phone: guestUser.phone || namePhone.phone,
+        address: addressInfo.address,
+        city: addressInfo.city,
+        postalCode: addressInfo.postalCode,
+        country: addressInfo.country,
+        area: addressInfo.area,
+      };
+  
+      const updateResponse = await fetch('/api/guest/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload),
+      });
+  
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
+        const updateErrorResult = await Swal.fire({
+          title: 'Error',
+          text: errorData.message || 'Failed to update guest information',
+          icon: 'error',
+          confirmButtonText: 'Try Again',
+          showCloseButton: true,
         });
-  
-        if (!updateResponse.ok) {
-          const errorData = await updateResponse.json();
-          await Swal.fire({
-            title: 'Error',
-            text: errorData.message || 'Failed to update guest information',
-            icon: 'error',
-            confirmButtonText: 'Try Again',
-          });
-          throw new Error(errorData.message || 'Failed to update guest info');
+        if (updateErrorResult.isDismissed && updateErrorResult.dismiss === Swal.DismissReason.close) {
+          return null;
         }
-  
-        const { user: updatedGuest } = await updateResponse.json();
-  
-        try {
-          const whatsappPayload = {
-            phone: guestUser.phone || namePhone.phone,
-            email: guestUser.email,
-            password: password,
-          };
-          const whatsappResponse = await fetch('/api/guest/whatsapp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(whatsappPayload),
-          });
-  
-          if (!whatsappResponse.ok) {
-            console.error(
-              'Failed to send WhatsApp message:',
-              await whatsappResponse.json()
-            );
-          }
-        } catch (whatsappError) {
-          console.error('WhatsApp error:', whatsappError);
-        }
-  
-        await Swal.fire({
-          title: 'Profile Created!',
-          html: `
-            <div class="text-left">
-              <p>Your guest profile has been created successfully!</p>
-              <p class="mt-4"><strong>Email:</strong> ${guestUser.email}</p>
-              <p><strong>Password:</strong> ${password}</p>
-              <div class="bg-green-50 p-3 rounded mt-4">
-                <p class="text-sm text-green-700">
-                  <span class="font-semibold">🇵🇰 WhatsApp confirmation sent to ${
-                    guestUser.phone || namePhone.phone
-                  }</span>
-                </p>
-                <p class="text-xs text-green-600 mt-1">
-                  Please save these credentials to track your orders later.
-                </p>
-              </div>
-            </div>
-          `,
-          icon: 'success',
-          confirmButtonText: 'Continue Shopping',
-        });
-  
-        try {
-          const loggedInUser = await loginGuestUser(guestUser.email, password);
-          setUser(loggedInUser);
-          router.push('/');
-          return loggedInUser;
-        } catch (loginError) {
-          console.error('Auto-login failed:', loginError);
-          return guestUser;
-        }
+        throw new Error(errorData.message || 'Failed to update guest info');
       }
   
-      return null;
+      const { user: updatedGuest } = await updateResponse.json();
+  
+      try {
+        const whatsappPayload = {
+          phone: guestUser.phone || namePhone.phone,
+          email: guestUser.email,
+          password: password,
+        };
+        const whatsappResponse = await fetch('/api/guest/whatsapp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(whatsappPayload),
+        });
+  
+        if (!whatsappResponse.ok) {
+          console.error(
+            'Failed to send WhatsApp message:',
+            await whatsappResponse.json()
+          );
+        }
+      } catch (whatsappError) {
+        console.error('WhatsApp error:', whatsappError);
+      }
+  
+      const successResult = await Swal.fire({
+        title: 'Profile Created!',
+        html: `
+          <div class="text-left">
+            <p>Your guest profile has been created successfully!</p>
+            <p class="mt-4"><strong>Email:</strong> ${guestUser.email}</p>
+            <p><strong>Password:</strong> ${password}</p>
+            <div class="bg-green-50 p-3 rounded mt-4">
+              <p class="text-sm text-green-700">
+                <span class="font-semibold">🇵🇰 WhatsApp confirmation sent to ${
+                  guestUser.phone || namePhone.phone
+                }</span>
+              </p>
+              <p class="text-xs text-green-600 mt-1">
+                Please save these credentials to track your orders later.
+              </p>
+            </div>
+          </div>
+        `,
+        icon: 'success',
+        confirmButtonText: 'Continue Shopping',
+        showCloseButton: true,
+      });
+  
+      if (successResult.isDismissed && successResult.dismiss === Swal.DismissReason.close) {
+        return null;
+      }
+  
+      try {
+        const loggedInUser = await loginGuestUser(guestUser.email, password);
+        setUser(loggedInUser);
+        router.push('/');
+        return loggedInUser;
+      } catch (loginError) {
+        console.error('Auto-login failed:', loginError);
+        return guestUser;
+      }
     } catch (error) {
       console.error('Guest creation error:', error);
-      await Swal.fire({
+      const errorResult = await Swal.fire({
         title: 'Error',
         html: `
           <p>${error.message || 'Failed to create guest profile'}</p>
           <p class="text-sm text-gray-500 mt-2">Please try again with a valid Pakistani number</p>
         `,
         icon: 'error',
+        showCloseButton: true,
       });
+      if (errorResult.isDismissed && errorResult.dismiss === Swal.DismissReason.close) {
+        return null;
+      }
       return null;
     }
   };
@@ -434,19 +469,20 @@ export default function FarmBoxGrid() {
         showCancelButton: true,
         confirmButtonText: 'Login',
         cancelButtonText: 'Continue as Guest',
-        reverseButtons: true
+        reverseButtons: true,
+        showCloseButton: true
       });
   
       if (result.isConfirmed) {
         router.push('/login');
         return;
-      } else {
+      } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
         currentUser = await createGuestUser();
         if (!currentUser) {
-          // Do not show error alert if createGuestUser returns null (e.g., non-03240251086 number)
           return;
         }
-        // User state is already updated by createGuestUser
+      } else {
+        return; // Stop if popup is closed or dismissed without selecting an option
       }
     }
   
@@ -641,7 +677,7 @@ export default function FarmBoxGrid() {
       </div>
 
       {selectedBox && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div 
             className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 relative"
             onClick={(e) => e.stopPropagation()}
