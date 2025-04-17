@@ -4,13 +4,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getSessionToken } from "@/pages/api/auth/auth";
-import { useRouter } from "next/navigation";
 import CropLogo from "@/public/crop_logo.png";
-import DefaultUserIcon from "@/public/default_user.png"; // Add this image
 import LoggedInUserIcon from "@/public/user.png"; // Add this image
 import ProfilePopup from "./profile";
 import MyOrders from "./myorder";
+import MyCart from "./mycart";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -22,6 +20,8 @@ const Navbar = () => {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [userOrder, setUserOrder] = useState(null);
   const [showMyOrders, setShowMyOrders] = useState(false);
+  const [showMyCart, setShowMyCart] = useState(false);
+  const [userCart,setUserCart] =useState(false);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -36,6 +36,7 @@ const Navbar = () => {
           setIsLoggedIn(true);
           setUserData(data.user);
           setUserOrder(data.orders); // Assuming you want to set user orders as well
+          setUserCart(data.cart); // Assuming you want to set user orders as well
         } else {
           setIsLoggedIn(false);
           setUserData(null);
@@ -60,6 +61,11 @@ const toggleMyOrders = () => {
   console.log(userOrder);
 };
 
+
+const toggleMyCart = () => {
+  setShowMyCart(!showMyCart);
+  console.log(userCart);
+};
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
@@ -186,6 +192,9 @@ const toggleMyOrders = () => {
           My Profile
         </button>
 
+        <button onClick={toggleMyCart} className="block w-full text-left cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
+          My Cart
+        </button>
         <button onClick={toggleMyOrders} className="block w-full text-left cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
           My Orders
         </button>
@@ -222,7 +231,12 @@ const toggleMyOrders = () => {
 
   </div>
 )}
+{showMyCart && (
+  <div className="absolute top-24 right-6 z-[10001]">
+    <MyCart onClose={() => setShowMyCart(false)} cart={userCart} />
 
+  </div>
+)}
 
       {/* Secondary Navbar - Only visible on /farmboxes page */}
       {isFarmboxesPage && (

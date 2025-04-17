@@ -47,7 +47,6 @@ export default function FarmBoxGrid() {
         price: `₹${box.price}`,
       }));
       
-      // Initialize quantities and frequencies
       const initialQuantities = {};
       const initialFrequencies = {};
       processedData.forEach(box => {
@@ -83,6 +82,28 @@ export default function FarmBoxGrid() {
       ...prev,
       [boxId]: value
     }));
+  };
+
+  const loginGuestUser = async (email, password) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+
+      const data = await response.json();
+      return data.user;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   };
 
   const createGuestUser = async () => {
@@ -228,10 +249,8 @@ export default function FarmBoxGrid() {
   
         if (verifyResponse.ok) {
           const verified = await verifyResponse.json();
-          console.log('Verify response:', JSON.stringify(verified, null, 2));
           guestUser = verified.user;
           password = verified.password;
-          console.log('guestUser:', guestUser);
           if (!guestUser?.id || !guestUser?.phone) {
             console.error('Invalid guest user data:', guestUser);
             throw new Error('Guest user data missing id or phone');
@@ -272,13 +291,6 @@ export default function FarmBoxGrid() {
           postalCode: addressInfo.postalCode
         };
   
-        console.log('Sending to /api/guest/update:', updatePayload);
-  
-        if (!updatePayload.guestId || !updatePayload.phone || !updatePayload.address || !updatePayload.city || !updatePayload.postalCode) {
-          console.error('Invalid update payload:', updatePayload);
-          throw new Error('Missing required fields for guest update');
-        }
-  
         const updateResponse = await fetch('/api/guest/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -287,11 +299,6 @@ export default function FarmBoxGrid() {
   
         if (!updateResponse.ok) {
           const errorData = await updateResponse.json();
-          console.error('Update API error:', {
-            status: updateResponse.status,
-            message: errorData.message,
-            details: errorData
-          });
           await Swal.fire({
             title: 'Error',
             text: errorData.message || 'Failed to update guest information',
@@ -302,7 +309,6 @@ export default function FarmBoxGrid() {
         }
   
         const { user: updatedGuest } = await updateResponse.json();
-        setUser(updatedGuest);
   
         try {
           const whatsappPayload = {
@@ -310,7 +316,6 @@ export default function FarmBoxGrid() {
             email: guestUser.email,
             password: password
           };
-          console.log('Sending to /api/guest/whatsapp:', whatsappPayload);
           const whatsappResponse = await fetch('/api/guest/whatsapp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -344,8 +349,18 @@ export default function FarmBoxGrid() {
           icon: 'success',
           confirmButtonText: 'Continue Shopping',
         });
-  
-        return guestUser;
+
+        // Automatically log in the guest user
+        try {
+          const loggedInUser = await loginGuestUser(guestUser.email, password);
+          setUser(loggedInUser);
+          router.push('/');
+          return loggedInUser;
+        } catch (loginError) {
+          console.error('Auto-login failed:', loginError);
+          // Return guest user even if auto-login fails
+          return guestUser;
+        }
       }
   
       return null;
@@ -382,13 +397,12 @@ export default function FarmBoxGrid() {
         router.push('/login');
         return;
       } else {
-        const guestUser = await createGuestUser();
-        if (!guestUser) {
+        currentUser = await createGuestUser();
+        if (!currentUser) {
           Swal.fire('Error', 'Failed to create guest session', 'error');
           return;
         }
-        currentUser = guestUser;
-        setUser(guestUser); // Ensure user state is updated
+        // User state is already updated by createGuestUser
       }
     }
   
@@ -404,7 +418,8 @@ export default function FarmBoxGrid() {
           quantity: quantities[box.id] || 1,
           frequency: frequencies[box.id] || box.deliveryfrequency,
           price: box.price
-        })
+        }),
+        credentials: 'include'
       });
   
       if (!response.ok) {
@@ -419,6 +434,9 @@ export default function FarmBoxGrid() {
         showConfirmButton: false,
         timer: 1500
       });
+
+      // Optionally redirect to cart page
+      // router.push('/cart');
     } catch (error) {
       console.error('Add to cart error:', error);
       Swal.fire('Error', error.message || 'Failed to add item to cart', 'error');
@@ -579,7 +597,7 @@ export default function FarmBoxGrid() {
       </div>
 
       {selectedBox && (
-        <div className="fixed inset-0 z-50 flex items-center  justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div 
             className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 relative"
             onClick={(e) => e.stopPropagation()}

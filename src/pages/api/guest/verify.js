@@ -58,7 +58,7 @@ export default async function handler(req, res) {
       ) VALUES (
         ${nextId},
         ${name},
-        ${`${nextId}@guest.com`},
+        ${`${nextId}@crop2x.com`},
         ${hashedPassword},
         ${phone},
         NULL,

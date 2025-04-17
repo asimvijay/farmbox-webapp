@@ -54,6 +54,7 @@ export default async function handler(req, res) {
         country VARCHAR(100),
         postalcode VARCHAR(20),
         area VARCHAR(100),
+        user_type VARCHAR(20),
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         verified BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -136,6 +137,16 @@ export default async function handler(req, res) {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+      `;
+
+      await sql`
+      CREATE TABLE IF NOT EXISTS otp_verifications(
+        id SERIAL PRIMARY KEY,
+        phone VARCHAR(20) UNIQUE NOT NULL,
+        otp VARCHAR(10) NOT NULL,
+        expiry TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULTCURRENT_TIMESTAMP,
+      )
       `;
   
 
