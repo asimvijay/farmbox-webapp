@@ -1,17 +1,17 @@
-import sql from '../farmboxes/db';
-import { getSessionToken } from '../auth/auth';
+import sql from "../farmboxes/db";
+import { getSessionToken } from "../auth/auth";
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' });
+  if (req.method !== "GET") {
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
   try {
     // 1. Verify session token
     const session = await getSessionToken(req.cookies);
-    
+
     if (!session?.id) {
-      return res.status(401).json({ message: 'Not authenticated' });
+      return res.status(401).json({ message: "Not authenticated" });
     }
 
     // 2. Fetch complete user data from database
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     `;
 
     if (users.length === 0) {
-      return res.status(401).json({ message: 'User not logged in' });
+      return res.status(401).json({ message: "User not logged in" });
     }
 
     const user = users[0];
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     const orders = await sql`
       SELECT 
         o.id,
-        o.amount,
+        o.amount::DECIMAL as amount, -- Cast to DECIMAL
         o.status,
         o.date,
         c.id as customer_id,
@@ -71,21 +71,21 @@ export default async function handler(req, res) {
         `;
         return {
           ...order,
-          order_items: items.map(item => ({
+          order_items: items.map((item) => ({
             product: {
               id: item.farmbox_id,
-              name: item.farmbox_name
+              name: item.farmbox_name,
             },
             quantity: item.quantity,
-            price: item.price
+            price: parseFloat(item.price), // Ensure price is a number
           })),
           customer: {
             id: order.customer_id,
             name: order.customer_name,
             email: order.customer_email,
             phone: order.customer_phone,
-            address: order.customer_address
-          }
+            address: order.customer_address,
+          },
         };
       })
     );
@@ -108,45 +108,44 @@ export default async function handler(req, res) {
 
     const cart = {
       customer_id: session.id,
-      items: cartItems.map(item => ({
+      items: cartItems.map((item) => ({
         id: item.id,
         product: {
           id: item.box_id,
-          name: item.box_name
+          name: item.box_name,
         },
         quantity: item.quantity,
-        price: item.price,
+        price: parseFloat(item.price), // Ensure price is a number
         frequency: item.frequency,
         created_at: item.created_at,
-        updated_at: item.updated_at
-      }))
+        updated_at: item.updated_at,
+      })),
     };
 
-   // 5. Return the user data along with their orders and cart
-
-
-
-   return res.status(200).json({ 
-     user: {
-       id: user.id,
-       name: user.name,
-       email: user.email,
-       phone: user.phone,
-       address: user.address,
-       city: user.city,
-       country: user.country,
-       postalCode: user.postalcode,
-       area: user.area,
-       verified: user.verified,
-       createdAt: user.created_at,
-       updatedAt: user.updated_at
-     },
-     orders: ordersWithItems,
-     cart,
-   });
-
+    // 5. Return the user data along with their orders and cart
+    return res.status(200).json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        country: user.country,
+        postalCode: user.postalcode,
+        area: user.area,
+        verified: user.verified,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+      },
+      orders: ordersWithItems,
+      cart,
+    });
   } catch (error) {
-    console.error('User data fetch error:', error);
-    return res.status(500).json({ message: 'Internal server error', details: error.message });
+    console.error("User data fetch error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      details: error.message,
+    });
   }
 }

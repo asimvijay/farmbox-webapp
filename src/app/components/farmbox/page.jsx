@@ -46,7 +46,7 @@ export default function FarmBoxGrid() {
         ...box,
         title: box.name,
         items: JSON.parse(box.products),
-        price: `₹${box.price}`,
+        price: `${box.price}`,
       }));
 
       const initialQuantities = {};
@@ -174,7 +174,7 @@ export default function FarmBoxGrid() {
               </div>
               <div className="flex flex-wrap pt-4 px-5">
                 <h1 className="text-gray-400">FROM OUR FARMERS</h1>
-                <h1 className="text-gray-400 ml-auto">{box.price}</h1>
+                <h1 className="text-gray-400 ml-auto">Rs.{box.price}</h1>
               </div>
               <div className="px-5 pb-40">
                 <div className="flex flex-wrap py-5">
