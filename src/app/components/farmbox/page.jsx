@@ -151,7 +151,7 @@ export default function FarmBoxGrid() {
             <div
               key={box.id}
               className="border border-gray-200 cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2 relative"
-              onClick={() => handleBoxClick(box)}
+              
             >
               <div className="relative h-80">
                 <Image
@@ -161,6 +161,7 @@ export default function FarmBoxGrid() {
                   className="object-cover hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   priority={index < 4}
+                  onClick={() => handleBoxClick(box)}
                 />
                 <button
                   className="absolute top-3 right-3 bg-green-600 text-white cursor-pointer text-xs px-3 py-1 rounded shadow hover:bg-green-700 transition z-10"
