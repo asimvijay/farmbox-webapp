@@ -1,4 +1,3 @@
-// src/utils/guestUser.js
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 
@@ -314,7 +313,7 @@ export const createGuestUser = async (router) => {
         body: JSON.stringify(whatsappPayload),
       });
 
-      if (!whatsapp_Response.ok) {
+      if (!whatsappResponse.ok) {
         console.error(
           'Failed to send WhatsApp message:',
           await whatsappResponse.json()
@@ -427,6 +426,12 @@ export const addToCart = async (user, box, quantities, frequencies, router) => {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to add to cart');
     }
+
+    // Dispatch custom event to notify that cart has been updated
+    const cartUpdateEvent = new CustomEvent('cartUpdated', {
+      detail: { userId: currentUser.id },
+    });
+    window.dispatchEvent(cartUpdateEvent);
 
     Swal.fire({
       position: 'center',

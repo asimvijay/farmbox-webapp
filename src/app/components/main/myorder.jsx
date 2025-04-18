@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import Farmbox1 from "@/public/Farmbox1.jpg"; // Adjust the path as necessary
 
 const MyOrders = ({ orders, onClose }) => {
   const router = useRouter();
@@ -154,7 +155,7 @@ const MyOrders = ({ orders, onClose }) => {
                                   <div className="flex items-center space-x-4">
                                     <div className="w-10 h-10 bg-gray-200 rounded-md flex items-center justify-center">
                                       <Image
-                                        src="/product-placeholder.png"
+                                        src={Farmbox1.src}
                                         alt={item.product.name}
                                         width={40}
                                         height={40}
@@ -165,9 +166,7 @@ const MyOrders = ({ orders, onClose }) => {
                                       <div className="font-medium text-gray-500">
                                         {item.product.name}
                                       </div>
-                                      <div className="text-sm text-gray-500">
-                                        ID: {item.product.id}
-                                      </div>
+                                    
                                     </div>
                                   </div>
                                   <div className="text-right">
