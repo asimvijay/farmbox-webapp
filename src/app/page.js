@@ -85,7 +85,9 @@ export default function LandingPage() {
               Get the best local, organic produce delivered weekly to your doorstep
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 flex items-center">
+              <button
+              onClick={() => window.location.href = '/farmboxes'}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold cursor-pointer py-3 px-8 rounded-lg transition duration-300 flex items-center">
                 Get Started <FaArrowRight className="ml-2" />
               </button>
               <button className="bg-white text-green-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg transition duration-300">

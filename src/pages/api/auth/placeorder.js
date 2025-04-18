@@ -111,7 +111,7 @@ export default async function handler(req, res) {
       console.log('Inserting order:', { orderId, customerId, totalAmount: integerTotalAmount });
       await transaction`
         INSERT INTO orders (id, customer_id, amount, status, date)
-        VALUES (${orderId}, ${customerId}, ${integerTotalAmount}, 'processing', CURRENT_TIMESTAMP)
+        VALUES (${orderId}, ${customerId}, ${integerTotalAmount}, 'Processing', CURRENT_TIMESTAMP)
       `;
 
       // Add order items
