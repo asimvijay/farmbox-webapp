@@ -1,4 +1,3 @@
-// FarmBoxGrid.js
 "use client";
 
 import { useState, useEffect } from "react";
@@ -42,7 +41,10 @@ export default function FarmBoxGrid() {
       if (!response.ok) throw new Error('Failed to fetch farmboxes');
       const data = await response.json();
 
-      const processedData = data.map((box) => ({
+      // Filter out boxes with maxquantity <= 0
+      const filteredData = data.filter(box => box.maxquantity > 0);
+
+      const processedData = filteredData.map((box) => ({
         ...box,
         title: box.name,
         items: JSON.parse(box.products),
@@ -72,11 +74,20 @@ export default function FarmBoxGrid() {
     setSelectedBox(box);
   };
 
-  const handleQuantityChange = (boxId, value) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [boxId]: parseInt(value, 10),
-    }));
+  const handleQuantityChange = (boxId, change) => {
+    setQuantities((prev) => {
+      const currentQuantity = prev[boxId] || 1;
+      const box = farmboxes.find(b => b.id === boxId);
+      const maxQuantity = box?.maxquantity || 1;
+      
+      let newQuantity = currentQuantity + change;
+      newQuantity = Math.max(1, Math.min(newQuantity, maxQuantity));
+      
+      return {
+        ...prev,
+        [boxId]: newQuantity,
+      };
+    });
   };
 
   const handleFrequencyChange = (boxId, value) => {
@@ -151,8 +162,18 @@ export default function FarmBoxGrid() {
             <div
               key={box.id}
               className="border border-gray-200 cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2 relative"
-              
             >
+              {/* Featured/Custom Badge */}
+              {box.isfeatured ? (
+                <div className="absolute top-3 left-3 bg-blue-400 text-white text-xs px-2 py-1 rounded shadow z-10">
+                  FEATURED BOX
+                </div>
+              ) : (
+                <div className="absolute top-3 left-3 bg-yellow-400 text-white text-xs px-2 py-1 rounded shadow z-10">
+                  CUSTOM BOX
+                </div>
+              )}
+
               <div className="relative h-80">
                 <Image
                   src={Farmbox1.src}
@@ -191,30 +212,67 @@ export default function FarmBoxGrid() {
               <div className="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-gray-200">
                 <div className="flex mb-4 justify-evenly">
                   <div className="w-2/6">
-                    <label className="block text-sm font-medium text-gray-500">
+                    <label className="block text-sm font-medium text-gray-500 mb-2">
                       Quantity
                     </label>
-                    <select
-                      className="border border-gray-500 rounded-md text-gray-500 px-3 py-2 w-full"
-                      value={quantities[box.id] || 1}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleQuantityChange(box.id, e.target.value);
-                      }}
-                    >
-                      {[...Array(box.maxquantity).keys()].map((num) => (
-                        <option key={num + 1} value={num + 1}>
-                          {num + 1}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center border border-gray-300 rounded-md">
+                      <button
+                        className="px-2 py-1 text-gray-600 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuantityChange(box.id, -1);
+                        }}
+                        disabled={quantities[box.id] <= 1}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M20 12H4"
+                          />
+                        </svg>
+                      </button>
+                      <span className="px-2 py-1 text-gray-700">
+                        {quantities[box.id] || 1}
+                      </span>
+                      <button
+                        className="px-2 py-1 text-gray-600 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuantityChange(box.id, 1);
+                        }}
+                        disabled={quantities[box.id] >= box.maxquantity}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                   <div className="w-4/7">
-                    <label className="block text-sm font-medium text-gray-500">
+                    <label className="block text-sm font-medium text-gray-500 mb-2">
                       Frequency
                     </label>
                     <select
-                      className="border border-gray-500 rounded-md text-gray-500 px-3 py-2 w-full"
+                      className="border border-gray-300 rounded-md text-gray-500 px-3 py-2 w-full"
                       value={frequencies[box.id] || box.deliveryfrequency}
                       onChange={(e) => {
                         e.stopPropagation();
@@ -243,7 +301,7 @@ export default function FarmBoxGrid() {
       </div>
 
       {selectedBox && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div
             className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 relative"
             onClick={(e) => e.stopPropagation()}
