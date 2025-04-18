@@ -67,7 +67,7 @@ const FarmBoxesManager = () => {
         }
       }
 
-      const response = await fetch(`/api/farmboxes/update?id=${boxId}`, {
+      const response = await fetch(`/api/farmboxes/update?id=Rs.{boxId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -218,7 +218,7 @@ const FarmBoxesManager = () => {
                   <div className="flex justify-between items-start mb-3">
                     <h4 className="text-lg font-bold text-gray-800 truncate">{box.name}</h4>
                     <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md text-sm font-semibold">
-                      ${parseFloat(box.price).toFixed(2)}
+                      Rs.{parseFloat(box.price).toFixed(2)}
                     </span>
                   </div>
                   

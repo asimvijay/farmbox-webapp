@@ -118,7 +118,8 @@ const ProductsList = () => {
 
               {/* Edit Form Overlay */}
               {isExpanded && (
-                <div className="absolute inset-0 bg-white rounded-lg p-4 z-20 shadow-xl border border-gray-200">
+               <div className="absolute inset-0 bg-white rounded-lg p-4 z-20 shadow-xl border border-gray-200 min-h-[calc(100%+20px)] -top-2.5 -bottom-2.5">
+
                   {/* Floating background effect */}
                   <div className="absolute inset-0 overflow-hidden rounded-lg">
                     <div className="absolute -inset-1 bg-gradient-to-br from-green-50 to-white opacity-70"></div>

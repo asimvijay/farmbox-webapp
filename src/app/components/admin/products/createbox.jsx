@@ -369,7 +369,7 @@ const CreateFarmBox = ({ onBack }) => {
       }
 
       const resultBox = await response.json();
-      router.push(`/admin/farmboxes/${resultBox.id}`);
+      onBack()
     } catch (err) {
       setError(err.message);
     } finally {
@@ -480,7 +480,7 @@ const CreateFarmBox = ({ onBack }) => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 text-gray-500 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
                   required
                   aria-required="true"
                 />
@@ -494,7 +494,7 @@ const CreateFarmBox = ({ onBack }) => {
                 value={formData.description}
                 onChange={handleChange}
                 rows={4}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-gray-500 shadow-sm focus:ring-green-500 focus:border-green-500"
                 required
                 aria-required="true"
               />

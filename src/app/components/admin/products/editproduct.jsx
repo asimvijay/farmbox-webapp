@@ -34,7 +34,7 @@ const EditProductForm = ({ product, onClose, onSave }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+            className="w-full px-3 py-2 border border-gray-300 text-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
             required
           />
         </div>
@@ -45,7 +45,7 @@ const EditProductForm = ({ product, onClose, onSave }) => {
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-500  shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
             required
           >
             <option value="vegetable">Vegetable</option>
@@ -65,7 +65,7 @@ const EditProductForm = ({ product, onClose, onSave }) => {
               onChange={handleChange}
               min="0"
               step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border border-gray-300 text-gray-500  rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
               required
             />
           </div>
@@ -77,7 +77,7 @@ const EditProductForm = ({ product, onClose, onSave }) => {
               value={formData.stock}
               onChange={handleChange}
               min="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-500  shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
               required
             />
           </div>
@@ -93,7 +93,7 @@ const EditProductForm = ({ product, onClose, onSave }) => {
             value={formData.image}
             onChange={handleChange}
            
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-500  shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
           />
         </div>
       </div>
